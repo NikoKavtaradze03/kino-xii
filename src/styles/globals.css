@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens from Figma. Every value defined here becomes a utility class,
+ * e.g. --color-surface -> bg-surface / text-surface / border-surface.
+ */
+@theme {
+  /* Filled in from Figma */
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
