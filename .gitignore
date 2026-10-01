@@ -25,3 +25,7 @@ dist-ssr
 
 # Claude Code local config
 .claude
+
+# Local working docs
+docs/PLAN.md
+docs/sessions/
