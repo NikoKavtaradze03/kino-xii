@@ -20,19 +20,19 @@ The API is ready; this repo is front end only.
 
 ## 1. Scope
 
-| Area | Pages / modals |
-|---|---|
-| Public | Home (hero carousel, recently viewed, Now Playing, Coming Soon), Sessions (filters + list, URL state), Movie details |
-| Auth | Login modal, Register modal (avatar preview). Protected actions resume automatically after login |
-| Booking | 2-step modal: Seats → Checkout (hold timer, card form) → Confirmation |
-| Account | Profile page: personal info form + My Tickets (Upcoming / Past, Refund) |
-| Global | Skeletons, empty states, error + retry, 401/409/422/500 handling, double-submit protection |
+| Area    | Pages / modals                                                                                                       |
+| ------- | -------------------------------------------------------------------------------------------------------------------- |
+| Public  | Home (hero carousel, recently viewed, Now Playing, Coming Soon), Sessions (filters + list, URL state), Movie details |
+| Auth    | Login modal, Register modal (avatar preview). Protected actions resume automatically after login                     |
+| Booking | 2-step modal: Seats → Checkout (hold timer, card form) → Confirmation                                                |
+| Account | Profile page: personal info form + My Tickets (Upcoming / Past, Refund)                                              |
+| Global  | Skeletons, empty states, error + retry, 401/409/422/500 handling, double-submit protection                           |
 
 ### Known discrepancies / decisions
 
 1. **Foyer (food & drinks, pickup slots) is out of scope.** The brief mentions it (checkout summary,
    409 "slot full", pickup code on confirmation, "no products in category" empty state), but the API
-   has no foyer endpoints (`/foyer`, `/menu` → 404). Likely left over from an older brief. *Confirm with Redberry.*
+   has no foyer endpoints (`/foyer`, `/menu` → 404). Likely left over from an older brief. _Confirm with Redberry._
 2. **Recently viewed** has no endpoint → stored in `localStorage` on the client.
 3. Movie responses include `isNotified` (not in the spec) — use it for the Notify Me button state.
 4. The brief says both "profile modal" and "profile page" — Figma decides.
@@ -46,19 +46,19 @@ The API is ready; this repo is front end only.
 
 ## 2. Tech stack
 
-| Package | Purpose |
-|---|---|
-| Vite + React + TypeScript | Build tool, UI, types |
-| React Router | Routing; `useSearchParams` for the sessions URL state |
-| TanStack Query | All server state: caching, loading/error, retry, refetch, invalidation after mutations |
-| Axios | HTTP client; interceptors attach the Bearer token and catch 401 centrally |
-| react-hook-form + zod (+ `@hookform/resolvers`) | Forms validated `onBlur`; zod holds the exact error strings; `setError` maps 422s |
-| Zustand | Small global store: token, user, open modal, pending action (readable outside React) |
-| Radix UI primitives | Dialog, Select, Tabs, Tooltip, Checkbox — accessible behaviour, styled by us |
-| Tailwind CSS v4 | Styling; Figma tokens defined once in `@theme` |
-| date-fns | 7-day date strip, formatting, card-expiry check |
-| ESLint + Prettier | Consistency |
-| Vitest *(optional)* | Unit tests for pure logic only (seat rules, pricing, URL parsing) |
+| Package                                         | Purpose                                                                                |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Vite + React + TypeScript                       | Build tool, UI, types                                                                  |
+| React Router                                    | Routing; `useSearchParams` for the sessions URL state                                  |
+| TanStack Query                                  | All server state: caching, loading/error, retry, refetch, invalidation after mutations |
+| Axios                                           | HTTP client; interceptors attach the Bearer token and catch 401 centrally              |
+| react-hook-form + zod (+ `@hookform/resolvers`) | Forms validated `onBlur`; zod holds the exact error strings; `setError` maps 422s      |
+| Zustand                                         | Small global store: token, user, open modal, pending action (readable outside React)   |
+| Radix UI primitives                             | Dialog, Select, Tabs, Tooltip, Checkbox — accessible behaviour, styled by us           |
+| Tailwind CSS v4                                 | Styling; Figma tokens defined once in `@theme`                                         |
+| date-fns                                        | 7-day date strip, formatting, card-expiry check                                        |
+| ESLint + Prettier                               | Consistency                                                                            |
+| Vitest _(optional)_                             | Unit tests for pure logic only (seat rules, pricing, URL parsing)                      |
 
 **Hosting:** Vercel, connected to the GitHub repo (auto-deploy on push, preview URL per branch).
 `vercel.json` rewrites every path to `index.html` so deep links like `/sessions?...` survive a refresh.
@@ -116,19 +116,21 @@ Each feature's `api.ts` holds plain request functions plus a query-key factory; 
 ## 4. Key design decisions
 
 ### a) Error normalisation — `shared/api/errors.ts`
+
 Every failed request becomes an `ApiError` with a `kind`:
 
-| kind | Source | UI response |
-|---|---|---|
-| `unauthorized` | 401 | Open login modal, replay the action afterwards |
-| `validation` | 422 with `errors` | Map each key onto its form field |
-| `rule` | 422 with `message` only | Show `message` as-is (incomplete profile, age gate, expired hold) |
-| `conflict` | 409 with `contested` | Mark those seats sold, keep the rest, refetch the map |
-| `forbidden` | 403 | Generic message (indicates a bug) |
-| `notFound` | 404 | Not-found state |
-| `server` | 500 / network | Error message + Retry |
+| kind           | Source                  | UI response                                                       |
+| -------------- | ----------------------- | ----------------------------------------------------------------- |
+| `unauthorized` | 401                     | Open login modal, replay the action afterwards                    |
+| `validation`   | 422 with `errors`       | Map each key onto its form field                                  |
+| `rule`         | 422 with `message` only | Show `message` as-is (incomplete profile, age gate, expired hold) |
+| `conflict`     | 409 with `contested`    | Mark those seats sold, keep the rest, refetch the map             |
+| `forbidden`    | 403                     | Generic message (indicates a bug)                                 |
+| `notFound`     | 404                     | Not-found state                                                   |
+| `server`       | 500 / network           | Error message + Retry                                             |
 
 ### b) Auth + "replay the action"
+
 - Token in `localStorage`; on boot, if a token exists call `GET /me` (401 → drop token, guest).
 - `requireAuth(action)`: logged in → run now; otherwise open the login modal with `pendingAction = action`,
   and run it after a successful login/registration.
@@ -138,6 +140,7 @@ Every failed request becomes an `ApiError` with a `kind`:
 - Register is `multipart/form-data`; note the snake_case `password_confirmation` field.
 
 ### c) Sessions URL state — `useSessionFilters`
+
 - The URL is the **single source of truth** (no mirrored `useState`).
 - Params: `date`, `venues[]`, `formats[]`, `languages[]`, `bands[]`, `sort`, `page` (sent to the API as-is).
 - `setFilters` always resets `page` to 1 unless the page itself is being changed.
@@ -147,7 +150,9 @@ Every failed request becomes an `ApiError` with a `kind`:
 - Pagination counts **films**, not sessions (10 per page); counter uses `meta.totalSessions`.
 
 ### d) Booking modal = state machine (`useReducer`)
+
 States: `selecting → holding → checkout → paying → confirmed`, plus `expired` / `conflict` transitions.
+
 - Opened via URL (`?booking=<sessionId>`), so a refresh can restore it; hold id kept in `sessionStorage`
   and re-read with `GET /holds/{id}`.
 - Seat map rendered purely from `GET /sessions/{id}/seats`: sections → rows → seats, `aisleAfter` spacers,
@@ -163,10 +168,12 @@ States: `selecting → holding → checkout → paying → confirmed`, plus `exp
 - Pay: `POST /orders`, button disabled + loading while in flight; render confirmation from the response.
 
 ### e) Server data is the truth
+
 After refund, profile save, order, notify: invalidate the affected queries and render what the server returns.
 No optimistic local edits.
 
 ### f) Forms
+
 - Validation `mode: "onBlur"`; valid fields get a green border/check, invalid ones red border + message.
 - Error strings copied exactly from the brief (the API returns the same strings for 422s).
 - Profile "Save Changes" disabled until the form is dirty and valid; loading while saving.
