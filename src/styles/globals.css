@@ -1,36 +1,26 @@
 @import 'tailwindcss';
 
-/*
- * Design tokens from Figma. Every value defined here becomes a utility class,
- * e.g. --color-card -> bg-card / text-card / border-card.
- */
 @theme {
-  /* Drop Tailwind's default palette so only design-system colours exist */
   --color-*: initial;
 
-  /* Backgrounds (Figma: bg/*) */
   --color-page: #070c1c;
   --color-card: #1e2031;
   --color-raised: #2a2c3d;
 
-  /* Text (Figma: text/*) */
   --color-primary: #ffffff;
   --color-secondary: #a9a9a9;
   --color-disabled: #505261;
 
-  /* Brand + status (Figma: color/*) */
   --color-red: #ec3013;
   --color-green: #4ade80;
   --color-orange: #e27e04;
 
-  /* 10% tints for badges and subtle fills (Figma: tint/*) */
   --color-tint-white: #ffffff1a;
   --color-tint-red: #ec30131a;
   --color-tint-green: #4ade801a;
 
   --color-shadow: #00000033;
 
-  /* Typography: Figma text styles -> text-display, text-h1, ... */
   --font-sans: 'Archivo Variable', sans-serif;
 
   --text-display: 40px;
@@ -73,7 +63,6 @@
   --text-button--line-height: normal;
   --text-button--font-weight: 800;
 
-  /* Layout: horizontal page padding from the Figma navbar -> px-gutter */
   --spacing-gutter: 60px;
 }
 
