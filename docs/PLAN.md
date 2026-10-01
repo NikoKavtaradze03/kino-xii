@@ -12,6 +12,9 @@ The API is ready; this repo is front end only.
 ## Submission requirements
 
 - Pixel fidelity at the design size: **1920×1080** content (desktop only).
+  Figma frames are 1728px wide (MacBook Pro 16" preset); organisers confirmed the target is 1920×1080.
+  So: keep Figma sizes, fonts and paddings 1:1, and let full-width areas stretch to the viewport.
+  Page gutter is 60px (`px-gutter`). Do **not** scale the UI up or cap it at 1728.
 - Public GitHub repo, **logical commits with short descriptive messages** (well over 10).
 - App **hosted online** (Vercel).
 - Optional but scored: a Loom video explaining how the work was done and how problems were solved.
