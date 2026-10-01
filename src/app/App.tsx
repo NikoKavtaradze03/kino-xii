@@ -1,11 +1,11 @@
+import { RouterProvider } from 'react-router'
 import { Providers } from './providers'
+import { router } from './router'
 
 function App() {
   return (
     <Providers>
-      <main className="px-gutter py-10">
-        <h1 className="text-display">Kino XII</h1>
-      </main>
+      <RouterProvider router={router} />
     </Providers>
   )
 }
