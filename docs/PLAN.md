@@ -57,7 +57,7 @@ The API is ready; this repo is front end only.
 | Radix UI primitives                             | Dialog, Select, Tabs, Tooltip, Checkbox — accessible behaviour, styled by us           |
 | Tailwind CSS v4                                 | Styling; Figma tokens defined once in `@theme`                                         |
 | date-fns                                        | 7-day date strip, formatting, card-expiry check                                        |
-| ESLint + Prettier                               | Consistency                                                                            |
+| oxlint + Prettier                               | Linting + formatting                                                                   |
 | Vitest _(optional)_                             | Unit tests for pure logic only (seat rules, pricing, URL parsing)                      |
 
 **Hosting:** Vercel, connected to the GitHub repo (auto-deploy on push, preview URL per branch).
@@ -184,7 +184,7 @@ No optimistic local edits.
 
 Each step is several small commits (`feat:`, `fix:`, `chore:`, `refactor:`, `style:`, `docs:`).
 
-1. **Setup:** Vite scaffold, ESLint/Prettier, Tailwind + Figma tokens, folder skeleton, `@/` alias,
+1. **Setup:** Vite scaffold, oxlint/Prettier, Tailwind + Figma tokens, folder skeleton, `@/` alias,
    GitHub repo, first Vercel deploy.
 2. **Foundation:** axios client + interceptors, `ApiError`, shared types, `/filter-options` at boot,
    router + RootLayout + Navbar, shared UI primitives (Button, TextField, Modal, Skeleton, …).
