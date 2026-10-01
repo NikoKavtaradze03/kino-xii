@@ -100,16 +100,41 @@ Buttons that send requests are disabled while the request is in flight.
 
 ## Authentication
 
-- The token is stored in `localStorage`. On boot, if a token exists, `GET /me` restores the user;
-  a 401 drops the token and the user continues as a guest.
-- `requireAuth(action)` runs the action immediately when signed in. Otherwise it opens the login modal
-  and stores the action as pending; a successful login or registration runs it, so the user never
-  clicks twice.
-- `POST /login` returns 401 for wrong credentials; that one is shown inside the modal and must not
-  trigger the global "session expired" handling.
-- A 401 from any protected request clears the token and opens the login modal with "retry this request"
-  as the pending action.
+State is split by ownership:
+
+- **Server state** — the signed-in user — is the TanStack Query entry `['me']` (`useCurrentUser()`).
+- **Client state** — the token and which auth modal is open — is a Zustand store (`features/auth/store.ts`).
+  The token is mirrored to `localStorage` (`shared/api/token.ts`) so the axios client can read it.
+
+Flow:
+
+- On boot, if a token exists, `GET /me` restores the user; a 401 there drops the token and the user
+  continues as a guest. While it loads, the navbar shows a skeleton instead of the login buttons.
+- Login and registration put the returned user straight into `['me']`, store the token, invalidate the
+  other queries (some responses depend on who is signed in) and close the modal.
+- **Waiting for a login** is a promise: `requestLogin()` opens the modal and resolves `true` when the user
+  signs in or registers, `false` when they dismiss it. Switching between the login and register modals
+  keeps it pending.
+- `useRequireAuth()(action)` runs the action now when signed in, otherwise after `requestLogin()` resolves
+  `true` — the user never clicks twice.
+- **401 replay** lives in the axios response interceptor: a 401 on any request not marked
+  `skipAuthRedirect` ends the session, awaits `requestLogin()`, and on success re-sends the same request
+  with the new token. The caller's promise simply stays pending (buttons stay in their loading state).
+  `/login`, `/register`, `/logout` and `/me` set `skipAuthRedirect`, because their 401s mean something else.
+- `RequireAuth` guards pages: arriving signed out opens the login modal (dismissing it goes home);
+  signing out while on the page goes home.
 - Booking additionally requires `user.profileComplete`; when false the user is sent to complete the profile.
+
+## Forms
+
+- react-hook-form with `zodResolver`; `mode: 'onBlur'` so errors appear when a field loses focus, then
+  re-validate on change. Schemas live in each feature's `schemas.ts` and hold the exact messages.
+- `TextField` shows Figma's states: hover, focus, error (red border, icon and message) and valid
+  (green check, once the field was touched and has no error).
+- Submit buttons are enabled from `useSchemaValid(control, schema)` rather than `formState.isValid`,
+  because `setError` (used for API errors) forces `isValid` to false until the next blur.
+- `applyServerErrors(error, setError, aliases)` maps 422 `errors` onto fields (`aliases` renames API keys
+  such as `password_confirmation`); any other failure becomes `root.server`, rendered by `FormError`.
 
 ## Sessions page URL state
 
@@ -157,6 +182,10 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
     hero), so pages without a hero start with `pt-header` (118px).
 - Icons come from the Figma icon set as `<Icon name="..." />` (`shared/ui/Icon.tsx`), 16×16, drawn in
   `currentColor` so they take the surrounding text colour.
+- Overlays use Radix primitives: `Modal` (Dialog: dimmed + blurred backdrop, closes on X, Escape and
+  backdrop click, traps focus) and `DropdownMenu` for the account menu.
+- Prefer Tailwind's spacing scale (`n × 4px`, quarter steps allowed: `pt-6.75` = 27px) over arbitrary
+  `[..px]` values; use arbitrary values only off the scale (e.g. `rounded-[28px]`).
 - `cn(...)` joins class names and drops falsy values. There is no class-merging library, so components
   avoid receiving utilities that conflict with their own.
 - `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint), `outline`
