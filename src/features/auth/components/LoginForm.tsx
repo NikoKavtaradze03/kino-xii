@@ -20,7 +20,7 @@ export function LoginForm() {
     formState: { errors, touchedFields, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    mode: 'onBlur',
+    mode: 'onTouched',
     defaultValues: { email: '', password: '' },
   })
   const canSubmit = useSchemaValid(control, loginSchema)

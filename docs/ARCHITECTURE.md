@@ -6,19 +6,19 @@ It is front end only; all data comes from the Kino XII REST API
 
 ## Stack
 
-| Concern          | Choice                                      | Why                                                                     |
-| ---------------- | ------------------------------------------- | ----------------------------------------------------------------------- |
-| Build / language | Vite, React, TypeScript (strict)            | Fast dev server, typed code                                             |
-| Routing          | React Router                                | Routes + `useSearchParams` for URL-driven state                         |
-| Server state     | TanStack Query                              | Caching, loading/error states, retries, invalidation after mutations    |
-| HTTP             | Axios                                       | Interceptors for the auth header and global 401 handling                |
-| Forms            | react-hook-form + zod                       | `onBlur` validation, schema-defined messages, `setError` for API errors |
-| Client state     | Zustand                                     | Auth session and global modal state, readable outside React             |
-| UI primitives    | Radix UI                                    | Accessible Dialog, Select, Tabs, Tooltip, Checkbox; styled by us        |
-| Styling          | Tailwind CSS v4                             | Figma tokens defined once in `@theme`                                   |
-| Dates            | date-fns                                    | Date strip, formatting, expiry checks                                   |
-| Lint / format    | oxlint, Prettier (+ Tailwind class sorting) |                                                                         |
-| Hosting          | Vercel                                      | Auto-deploy from `main`; SPA rewrite in `vercel.json`                   |
+| Concern          | Choice                                      | Why                                                                             |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
+| Build / language | Vite, React, TypeScript (strict)            | Fast dev server, typed code                                                     |
+| Routing          | React Router                                | Routes + `useSearchParams` for URL-driven state                                 |
+| Server state     | TanStack Query                              | Caching, loading/error states, retries, invalidation after mutations            |
+| HTTP             | Axios                                       | Interceptors for the auth header and global 401 handling                        |
+| Forms            | react-hook-form + zod                       | validate on blur, then live; schema-defined messages, `setError` for API errors |
+| Client state     | Zustand                                     | Auth session and global modal state, readable outside React                     |
+| UI primitives    | Radix UI                                    | Accessible Dialog, Select, Tabs, Tooltip, Checkbox; styled by us                |
+| Styling          | Tailwind CSS v4                             | Figma tokens defined once in `@theme`                                           |
+| Dates            | date-fns                                    | Date strip, formatting, expiry checks                                           |
+| Lint / format    | oxlint, Prettier (+ Tailwind class sorting) |                                                                                 |
+| Hosting          | Vercel                                      | Auto-deploy from `main`; SPA rewrite in `vercel.json`                           |
 
 ## Folder structure
 
@@ -127,8 +127,10 @@ Flow:
 
 ## Forms
 
-- react-hook-form with `zodResolver`; `mode: 'onBlur'` so errors appear when a field loses focus, then
-  re-validate on change. Schemas live in each feature's `schemas.ts` and hold the exact messages.
+- react-hook-form with `zodResolver` and `mode: 'onTouched'`: a field is first validated when it loses
+  focus (as the brief requires), then on every change, so an error clears as soon as the value is fixed.
+  (`onBlur` would keep the error until the next blur.) Schemas live in each feature's `schemas.ts` and
+  hold the exact messages.
 - `TextField` shows Figma's states: hover, focus, error (red border, icon and message) and valid
   (green check, once the field was touched and has no error).
 - Submit buttons are enabled from `useSchemaValid(control, schema)` rather than `formState.isValid`,

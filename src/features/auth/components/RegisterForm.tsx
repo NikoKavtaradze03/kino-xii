@@ -22,7 +22,7 @@ export function RegisterForm() {
     formState: { errors, touchedFields, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    mode: 'onBlur',
+    mode: 'onTouched',
     defaultValues: { username: '', email: '', password: '', passwordConfirmation: '' },
   })
   const canSubmit = useSchemaValid(control, registerSchema)
