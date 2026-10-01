@@ -25,8 +25,8 @@ It is front end only; all data comes from the Kino XII REST API
 ```
 src/
   main.tsx              entry: fonts, global CSS, mounts <App/>
-  app/                  wiring only: App, router, providers, layouts
-  pages/                one component per route; thin, composes features
+  app/                  wiring only: App, router, providers, query client, layouts/ (RootLayout, Navbar, Footer)
+  pages/                one component per route; thin, composes features (+ NotFound, RouteError)
   features/
     auth/               login, register, session store, requireAuth
     catalogue/          movies: hero, rows, cards, details, recently viewed
@@ -35,9 +35,9 @@ src/
     profile/            profile form and completeness status
     tickets/            My Tickets tabs and refunds
   shared/
-    api/                axios client, error normalisation, API types
-    ui/                 design-system components (Button, TextField, Modal, ...)
-    lib/                pure helpers (formatting, storage)
+    api/                axios client, ApiError, token storage, API types, filter options query
+    ui/                 design-system components (Button, Badge, Icon, Logo, Skeleton, ...)
+    lib/                pure helpers (cn, formatting)
   styles/globals.css    Tailwind import + design tokens
 ```
 
@@ -66,8 +66,12 @@ Components never call axios directly.
 ## Data layer
 
 - **Static reference data** (`GET /filter-options`: venues, formats, languages, time bands, sorts,
-  ticket types, age ratings, seat cap, hold minutes) is fetched once at boot and cached for the
-  session. None of these values are hardcoded.
+  ticket types, age ratings, seat cap, hold minutes) is prefetched in `main.tsx` and cached for the
+  whole session (`staleTime` and `gcTime` are `Infinity`). Read it with `useFilterOptions()`.
+  None of these values are hardcoded.
+- Queries retry only `server` and `network` errors (max 2); a 404 or 422 would fail the same way again.
+  Refetch on window focus is off.
+- The API base URL comes from `VITE_API_BASE_URL` in `.env`.
 - **Server-computed fields are trusted, never recomputed:** `user.age`, `user.profileComplete`,
   `order.isRefundable`, `session.timeBand`, `movie.fromPrice`, `movie.availableDates`.
 - **After a mutation** (order, refund, profile save, notify) the affected queries are invalidated and
@@ -85,7 +89,11 @@ Every failed request is normalised into an `ApiError` (`shared/api/errors.ts`) w
 | `conflict`     | 409 with `contested`    | Mark contested seats taken, keep the rest, refetch                |
 | `forbidden`    | 403                     | Generic error                                                     |
 | `notFound`     | 404                     | Not-found state                                                   |
-| `server`       | 5xx / network           | Error message with Retry                                          |
+| `server`       | 5xx                     | Error message with Retry                                          |
+| `network`      | no response             | Error message with Retry                                          |
+
+The axios response interceptor converts every failure, so `catch` blocks and `useQuery` errors are
+always an `ApiError` (`isApiError` narrows `unknown`).
 
 Every list has loading (skeletons on the sessions page), empty and error states.
 Buttons that send requests are disabled while the request is in flight.
@@ -97,6 +105,8 @@ Buttons that send requests are disabled while the request is in flight.
 - `requireAuth(action)` runs the action immediately when signed in. Otherwise it opens the login modal
   and stores the action as pending; a successful login or registration runs it, so the user never
   clicks twice.
+- `POST /login` returns 401 for wrong credentials; that one is shown inside the modal and must not
+  trigger the global "session expired" handling.
 - A 401 from any protected request clears the token and opens the login modal with "retry this request"
   as the pending action.
 - Booking additionally requires `user.profileComplete`; when false the user is sent to complete the profile.
@@ -137,11 +147,21 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
   - Colours: `page`, `card`, `raised`, `primary`, `secondary`, `disabled`, `red`, `green`, `orange`,
     `tint-white`, `tint-red`, `tint-green`, `shadow`
   - Text styles (size + line height + weight in one class): `text-display`, `text-h1`, `text-h2`,
-    `text-h3`, `text-body-l`, `text-body-m`, `text-body-s`, `text-label-m`, `text-label-s`, `text-button`
+    `text-h3`, `text-body-l`, `text-body-m`, `text-body-s`, `text-label-m`, `text-label-s`,
+    `text-overline` (6% tracking, used uppercase), `text-button`
   - Font: Archivo (self-hosted via `@fontsource-variable/archivo`)
 - **Layout target is 1920×1080.** Figma frames are 1728px wide; sizes, fonts and paddings are
-  implemented 1:1 and full-width areas stretch to the viewport. Horizontal page padding is
-  `px-gutter` (60px).
+  implemented 1:1 and full-width areas stretch to the viewport.
+  - Page content uses `px-gutter` (51px). The navbar uses 60px and the footer 34px, as in Figma.
+  - The navbar is absolutely positioned over the top of every page (a transparent gradient over the
+    hero), so pages without a hero start with `pt-header` (118px).
+- Icons come from the Figma icon set as `<Icon name="..." />` (`shared/ui/Icon.tsx`), 16×16, drawn in
+  `currentColor` so they take the surrounding text colour.
+- `cn(...)` joins class names and drops falsy values. There is no class-merging library, so components
+  avoid receiving utilities that conflict with their own.
+- `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint), `outline`
+  (Notify); sizes `md` / `sm`; `loading` shows a spinner and disables it. `ButtonLink` has the same look
+  as a router link.
 - Reusable visual components live in `shared/ui`; features compose them rather than restyling raw elements.
 
 ## Conventions
@@ -149,8 +169,10 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
 - Prettier: no semicolons, single quotes, trailing commas, 100-column width. Run `npm run format`.
 - Components and their files are PascalCase; hooks are `useX`; other modules are camelCase.
 - Comments only where they carry context the code cannot (API quirks, non-obvious constraints).
-- Commits follow Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `style:`, `build:`),
-  small and focused.
+- Commits follow Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `style:`, `build:`);
+  each is one logical change.
+- One branch per build step (`feat/foundation`, `feat/auth`, ...), merged into `main` through a pull
+  request with a merge commit (not squashed).
 
 ## Scripts
 
