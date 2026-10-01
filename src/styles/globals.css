@@ -59,11 +59,17 @@
   --text-label-s--line-height: normal;
   --text-label-s--font-weight: 600;
 
+  --text-overline: 12px;
+  --text-overline--line-height: normal;
+  --text-overline--font-weight: 600;
+  --text-overline--letter-spacing: 0.06em;
+
   --text-button: 14px;
   --text-button--line-height: normal;
   --text-button--font-weight: 800;
 
-  --spacing-gutter: 60px;
+  --spacing-gutter: 51px;
+  --spacing-header: 118px;
 }
 
 @layer base {
