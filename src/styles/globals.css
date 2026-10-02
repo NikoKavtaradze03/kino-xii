@@ -75,8 +75,8 @@
 
   --animate-progress: progress 6s linear forwards;
 
-  /* Starts halfway through the 300ms card expansion; `both` keeps it hidden during the delay. */
-  --animate-fade-in-late: fade-in 200ms ease-out 150ms both;
+  /* Same timing as the card's Smart Animate in the Figma prototype. */
+  --animate-fade-in: fade-in 300ms linear both;
 
   @keyframes fade-in {
     from {

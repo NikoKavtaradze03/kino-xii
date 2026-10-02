@@ -10,11 +10,14 @@ import { genreAndRuntime, moviePath } from '../lib'
 import { AgeBadge } from './AgeBadge'
 import { MovieImage } from './MovieImage'
 
-// Expanded text is laid out at the final width (447 − 2×12 padding) right away, so the growing card
-// reveals it instead of re-truncating it every frame; its font size grows along with the card.
-const textGrowClasses = 'truncate transition-[font-size,line-height] duration-300 ease-linear'
+// Where the synopsis sits once expanded: 12 padding + 224 image + 10 gap + 71 title block + 10 gap.
+// It is positioned there from the start, so it never moves or pushes the rest of the card.
+const synopsisClasses = 'absolute top-81.75 left-3 w-105.75 animate-fade-in pr-5'
 
-/** Grows on hover/focus to show the backdrop and synopsis (fetched then; list items have none). */
+/**
+ * Grows on hover/focus as in the Figma prototype: only the width, the image and the border change;
+ * the synopsis (fetched then, list items have none) fades in at its final position.
+ */
 export function NowPlayingCard({ movie }: { movie: Movie }) {
   const [expanded, setExpanded] = useState(false)
   const detail = useQuery({ ...movieQuery(movie.slug), enabled: expanded })
@@ -30,13 +33,11 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
       onFocus={expand}
       onBlur={collapse}
       className={cn(
-        'flex h-113 shrink-0 flex-col justify-between overflow-hidden rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-raised transition-[width] duration-300 ease-linear ring-inset',
+        'relative flex h-113 shrink-0 flex-col justify-between overflow-hidden rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-raised transition-[width] duration-300 ease-linear ring-inset',
         expanded ? 'w-111.75 ring-1' : 'w-65',
       )}
     >
-      {/* min-h-0 lets this part shrink and clip while the poster is still shrinking, so the
-          price row stays put at the bottom instead of being pushed down. */}
-      <div className={cn('flex min-h-0 flex-col overflow-hidden', expanded ? 'gap-3' : 'gap-2.5')}>
+      <div className="flex flex-col gap-2.5">
         <MovieImage
           src={expanded ? (movie.backdropUrl ?? movie.posterUrl) : movie.posterUrl}
           className={cn(
@@ -45,43 +46,33 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
           )}
         />
 
-        <div className={cn('flex flex-col', expanded ? 'gap-2' : 'gap-1.75')}>
-          <div className={cn('flex flex-col', expanded ? 'gap-2' : 'gap-1.75')}>
-            <h3 className={cn(textGrowClasses, expanded ? 'w-105.75 text-h2' : 'text-h3')}>
-              {movie.title}
-            </h3>
-            <p
-              className={cn(
-                textGrowClasses,
-                'text-secondary',
-                expanded ? 'w-105.75 text-body-m' : 'text-body-s',
-              )}
-            >
-              {genreAndRuntime(movie)}
-            </p>
-          </div>
+        {/* Expanded, the text takes its final width at once, so the growing card reveals it
+            instead of re-truncating it every frame. */}
+        <div className="flex flex-col gap-1.75">
+          <h3 className={cn('truncate text-h3', expanded && 'w-105.75')}>{movie.title}</h3>
+          <p className={cn('truncate text-body-s text-secondary', expanded && 'w-105.75')}>
+            {genreAndRuntime(movie)}
+          </p>
           <div>
             <AgeBadge rating={movie.ageRating} />
           </div>
         </div>
-
-        {/* Laid out at the expanded width from the start and faded in while the card grows,
-            so the text never reflows during the animation. */}
-        {expanded &&
-          (detail.data ? (
-            <p className="line-clamp-3 w-105.75 animate-fade-in-late pr-5 text-body-m text-secondary">
-              {detail.data.synopsis}
-            </p>
-          ) : (
-            detail.isPending && (
-              <div className="animate-fade-in-late">
-                <Skeleton className="h-13.5 w-105.75" />
-              </div>
-            )
-          ))}
       </div>
 
-      <div className="flex shrink-0 items-center justify-between gap-3">
+      {expanded &&
+        (detail.data ? (
+          <p className={cn(synopsisClasses, 'line-clamp-3 text-body-m text-secondary')}>
+            {detail.data.synopsis}
+          </p>
+        ) : (
+          detail.isPending && (
+            <div className={synopsisClasses}>
+              <Skeleton className="h-13.5" />
+            </div>
+          )
+        ))}
+
+      <div className="flex items-center justify-between gap-3">
         <span className="text-label-s">From {formatPrice(movie.fromPrice)}</span>
         {/* The whole card is the link, so this is only styled like a button. */}
         <span className="rounded-full bg-red px-5.5 py-2.5 text-button">Buy Ticket</span>
