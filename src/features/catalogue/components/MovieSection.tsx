@@ -29,13 +29,16 @@ export function MovieSection({
         {action}
       </div>
 
-      <div className="relative">
-        {/* Padding keeps hover shadows from being clipped by the scroll container; the negative
-            margin cancels it. The thin scrollbar (10px) is always reserved, so a row is equally tall
-            whether or not it overflows. */}
+      {/* As in Figma, the row is clipped 70px in from the page edges and has a faint inner shadow
+          (the -z-10 layer sits behind the cards; `isolate` keeps it above the page background). */}
+      <div className="relative isolate mx-17.5">
+        <div className="pointer-events-none absolute inset-0 -z-10 shadow-[inset_0_0_4px_var(--color-shadow)]" />
+        {/* Vertical padding keeps hover shadows from being clipped by the scroll container; the
+            negative margin cancels it. The thin scrollbar (10px) is always reserved, so a row is
+            equally tall whether or not it overflows. */}
         <div
           className={cn(
-            '-my-6 flex px-17.5 pt-6',
+            '-my-6 flex pt-6',
             wrap
               ? 'flex-wrap pb-6'
               : '[scrollbar-width:thin] [scrollbar-color:var(--color-raised)_transparent] overflow-x-scroll pb-3.5',
@@ -45,7 +48,7 @@ export function MovieSection({
           {children}
         </div>
         {!wrap && (
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-40 bg-linear-to-l from-page" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-45 bg-linear-to-l from-page" />
         )}
       </div>
     </section>
