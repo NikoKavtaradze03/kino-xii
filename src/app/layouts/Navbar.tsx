@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { UserMenu } from '@/features/auth/components/UserMenu'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useAuthStore } from '@/features/auth/store'
+import { HeaderSearch } from '@/features/search/components/HeaderSearch'
 import { Button } from '@/shared/ui/Button'
 import { Logo } from '@/shared/ui/Logo'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -44,7 +45,10 @@ export function Navbar() {
         </Link>
       </nav>
 
-      <AccountArea />
+      <div className="flex items-center gap-8">
+        <HeaderSearch />
+        <AccountArea />
+      </div>
     </header>
   )
 }
