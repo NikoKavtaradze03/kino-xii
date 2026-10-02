@@ -184,7 +184,7 @@ export function SearchPanel({
   }
 
   return (
-    <div className="absolute top-full right-0 mt-1.25 w-120 rounded-2xl border border-raised bg-page p-2 shadow-[0_20px_48px_-8px_var(--color-shadow),0_2px_6px_var(--color-shadow)]">
+    <div className="absolute top-full right-0 mt-1.25 w-120 rounded-2xl border border-raised bg-page p-2 shadow-[0_20px_48px_-8px_var(--color-shadow),0_2px_6px_var(--color-shadow)] transition-opacity duration-300 ease-out motion-reduce:transition-none starting:opacity-0">
       {content}
     </div>
   )

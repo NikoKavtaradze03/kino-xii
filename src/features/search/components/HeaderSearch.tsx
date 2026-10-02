@@ -61,15 +61,30 @@ export function HeaderSearch() {
         if (!event.currentTarget.contains(event.relatedTarget)) close()
       }}
     >
-      {open && <div aria-hidden className="fixed inset-0 -z-10 bg-black/20" onMouseDown={close} />}
+      {/* Opening animates (300 ms, like our hover fades): the bar widens to the left, the placeholder
+          and border fade, and the backdrop and panel fade in. Figma's prototype switches instantly. */}
+      {open && (
+        <div
+          aria-hidden
+          className="fixed inset-0 -z-10 bg-black/20 transition-opacity duration-300 ease-out motion-reduce:transition-none starting:opacity-0"
+          onMouseDown={close}
+        />
+      )}
 
+      {/* A click anywhere on the bar (padding, icon) focuses the field; keyboard users reach the
+          input directly, so this is a mouse convenience only. */}
       <div
+        onMouseDown={(event) => {
+          if ((event.target as Element).closest('input, button')) return
+          event.preventDefault()
+          inputRef.current?.focus()
+        }}
         className={cn(
-          'flex h-10.25 items-center rounded-full bg-tint-white py-1.5 ring-1 ring-inset',
+          'flex h-10.25 cursor-text items-center rounded-full bg-tint-white py-1.5 ring-1 transition-[width,box-shadow] duration-300 ease-out ring-inset motion-reduce:transition-none',
           open
             ? 'w-full ring-tint-white backdrop-blur-[5.6px]'
             : 'w-95 ring-transparent hover:ring-tint-white',
-          open && !trimmed ? 'pr-3 pl-6.75' : 'pr-2 pl-3',
+          !open ? 'px-3' : trimmed ? 'pr-2.25 pl-3.25' : 'pr-3 pl-6.75',
         )}
       >
         {(!open || trimmed) && <Icon name="search" className="-m-px shrink-0" />}
@@ -91,8 +106,8 @@ export function HeaderSearch() {
           }}
           onKeyDown={onKeyDown}
           className={cn(
-            'min-w-0 flex-1 bg-transparent text-body-m caret-primary outline-none [&::-webkit-search-cancel-button]:appearance-none',
-            open ? 'placeholder:text-disabled' : 'cursor-pointer placeholder:text-primary',
+            'min-w-0 flex-1 bg-transparent text-body-m caret-primary outline-none placeholder:transition-colors placeholder:duration-300 placeholder:ease-out motion-reduce:placeholder:transition-none [&::-webkit-search-cancel-button]:appearance-none',
+            open ? 'placeholder:text-disabled' : 'placeholder:text-primary',
             !open ? 'ml-1' : trimmed && 'ml-2',
           )}
         />

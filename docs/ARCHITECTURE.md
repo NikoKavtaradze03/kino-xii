@@ -256,6 +256,9 @@ synopsis, badges), the sessions section on the left and a Details panel on the r
 - The pill opens Figma's overlay in place when focused: it widens from 380 to 480px, the page is
   dimmed (black 20 %) and a panel below shows the prompt, the results or "No results". Clicking
   outside, Escape and the clear (×) button close it and empty the field, as in the Figma prototype.
+  Opening and closing animate over 300 ms (width, placeholder colour, border; backdrop and panel
+  fade in), which Figma's prototype does not; reduced motion turns it off. A click anywhere on the
+  bar focuses the field.
 - `GET /search?q=` (titles only, at most 6 films) runs 300 ms after the last keystroke
   (`useDebouncedValue`). Earlier results stay on screen while the next ones load; a skeleton shows
   only before the first results.
