@@ -3,12 +3,12 @@ import { useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useRequireAuth } from '@/features/auth/hooks'
 import type { FilterOptions } from '@/shared/api/types'
+import { upcomingDates } from '@/shared/lib/dates'
 import { fetchSessions, sessionKeys } from './api'
 import {
   availableFormats,
   parseSessionFilters,
   sessionFiltersSearch,
-  upcomingDates,
   type FilterValues,
   type SessionFilters,
 } from './filters'

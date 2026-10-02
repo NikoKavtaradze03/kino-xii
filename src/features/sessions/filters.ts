@@ -1,4 +1,3 @@
-import { addDays, format } from 'date-fns'
 import type { FilterOptions, SortId, TimeBandId } from '@/shared/api/types'
 
 export type SessionFilters = {
@@ -13,14 +12,7 @@ export type SessionFilters = {
 
 export type FilterValues = Pick<SessionFilters, 'venues' | 'formats' | 'languages' | 'bands'>
 
-const DAYS_SHOWN = 7
-
 const slugs = (items: { slug: string }[]) => items.map((item) => item.slug)
-
-/** Today and the following six days, as the API's "yyyy-MM-dd" dates. */
-export function upcomingDates(today: Date) {
-  return Array.from({ length: DAYS_SHOWN }, (_, i) => format(addDays(today, i), 'yyyy-MM-dd'))
-}
 
 /** With venues selected, only the formats at least one of them offers; otherwise all formats. */
 export function availableFormats(options: FilterOptions, venues: string[]) {
