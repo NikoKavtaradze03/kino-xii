@@ -33,7 +33,7 @@ src/
     search/             header search typeahead
     sessions/           sessions page: filters (URL state), list, date strip
     booking/            booking modal: seat map, hold, checkout, confirmation
-    profile/            profile form and completeness status
+    profile/            profile form and age-rating eligibility
     tickets/            My Tickets tabs and refunds
   shared/
     api/                axios client, ApiError, token storage, API types, filter options query
@@ -323,10 +323,11 @@ modal; dismissing it removes the parameter.
 (default) and My Tickets (`?tab=tickets`, plus `&tickets=past` for the Past list). The page only
 composes `features/profile` and `features/tickets`.
 
-- **Status:** Figma's profile status box (shared with the user menu): "Profile incomplete" with
-  "Please complete your profile to enable booking", or "Profile Complete ✓". When complete, the
-  server-computed `age` and the `/filter-options` age ratings give the notice ("You are 14, you
-  cannot buy tickets for 16+ or 18+ titles").
+- **Completeness:** shown by the user menu's status box and the dot on the avatar; the page itself
+  keeps Figma's layout. Beside the form (not in Figma), an "Age ratings you can book" card uses the
+  server-computed `age` and the `/filter-options` age ratings: the notice ("You are 14, you cannot
+  buy tickets for 16+ or 18+ titles") and the rating badges, the blocked ones faded. Without a date
+  of birth it asks for one.
 - **Form:** react-hook-form + zod (`profile/schemas.ts`) with the brief's exact messages, checked in
   the brief's order (mobile: required → digits only → starts with 5 → 9 digits). Email is shown
   disabled. Date of birth is a native date input (the whole field opens the picker); the preferred
