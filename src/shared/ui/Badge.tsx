@@ -2,9 +2,17 @@ import type { ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { Icon, type IconName } from './Icon'
 
+type Size = 'md' | 'sm' | 'xs'
+
+const sizeClasses: Record<Size, string> = {
+  md: 'px-3 py-1.5',
+  sm: 'px-2 py-1',
+  xs: 'px-1.75 py-1',
+}
+
 type BadgeProps = {
   tone?: 'neutral' | 'red'
-  size?: 'md' | 'sm'
+  size?: Size
   icon?: IconName
   title?: string
   className?: string
@@ -24,7 +32,7 @@ export function Badge({
       title={title}
       className={cn(
         'inline-flex items-center gap-1 rounded-full text-label-s whitespace-nowrap',
-        size === 'md' ? 'px-3 py-1.5' : 'px-2 py-1',
+        sizeClasses[size],
         tone === 'red' ? 'bg-tint-red text-red' : 'bg-tint-white text-primary',
         className,
       )}

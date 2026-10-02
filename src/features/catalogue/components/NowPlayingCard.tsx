@@ -10,11 +10,11 @@ import { genreAndRuntime, moviePath } from '../lib'
 import { AgeBadge } from './AgeBadge'
 import { MovieImage } from './MovieImage'
 
-// Where the synopsis sits once expanded: 12 padding + 224 image + 10 gap + 71 title block + 10 gap.
-// It is positioned there from the start, so it never moves or pushes the rest of the card. It fades
-// in and out with the card's 300ms; `starting:` also fades it in when it first appears.
+// Where the synopsis sits once expanded: 224 image + 10 gap + 71 title block + 10 gap. It is
+// positioned there from the start, so it never moves or pushes the rest of the card. It fades in and
+// out with the card's 300ms; `starting:` also fades it in when it first appears.
 const synopsisClasses =
-  'absolute top-81.75 left-3 w-105.75 pr-5 transition-opacity duration-300 ease-linear starting:opacity-0'
+  'absolute top-78.75 left-0 w-105.75 pr-5 transition-opacity duration-300 ease-linear starting:opacity-0'
 
 /**
  * Grows on hover/focus as in the Figma prototype: only the width, the image and the border change;
@@ -35,13 +35,15 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
       onFocus={expand}
       onBlur={collapse}
       className={cn(
-        'relative flex h-113 shrink-0 flex-col justify-between overflow-hidden rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-raised transition-[width] duration-300 ease-linear ring-inset',
+        'flex h-113 shrink-0 flex-col justify-center gap-2.5 overflow-hidden rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-raised transition-[width] duration-300 ease-linear ring-inset',
         expanded ? 'w-111.75 ring-1' : 'w-65',
       )}
     >
-      <div className="flex flex-col gap-2.5">
+      {/* Fixed height (Figma's 380), so the price row below never moves while the image shrinks. */}
+      <div className="relative flex h-95 flex-col gap-2.5">
+        {/* Figma keeps the poster on hover and only crops it to the wider box. */}
         <MovieImage
-          src={expanded ? (movie.backdropUrl ?? movie.posterUrl) : movie.posterUrl}
+          src={movie.posterUrl}
           className={cn(
             'w-full rounded-[14px] transition-[height] duration-300 ease-linear',
             expanded ? 'h-56' : 'h-75',
@@ -56,31 +58,31 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
             {genreAndRuntime(movie)}
           </p>
           <div>
-            <AgeBadge rating={movie.ageRating} />
+            <AgeBadge rating={movie.ageRating} size="xs" />
           </div>
         </div>
-      </div>
 
-      {/* Stays mounted once loaded, so collapsing can fade it out instead of removing it. */}
-      {detail.data ? (
-        <p
-          aria-hidden={!expanded}
-          className={cn(
-            synopsisClasses,
-            'line-clamp-3 text-body-m text-secondary',
-            expanded ? 'opacity-100' : 'opacity-0',
-          )}
-        >
-          {detail.data.synopsis}
-        </p>
-      ) : (
-        expanded &&
-        detail.isPending && (
-          <div className={synopsisClasses}>
-            <Skeleton className="h-13.5" />
-          </div>
-        )
-      )}
+        {/* Stays mounted once loaded, so collapsing can fade it out instead of removing it. */}
+        {detail.data ? (
+          <p
+            aria-hidden={!expanded}
+            className={cn(
+              synopsisClasses,
+              'line-clamp-3 text-body-m text-secondary',
+              expanded ? 'opacity-100' : 'opacity-0',
+            )}
+          >
+            {detail.data.synopsis}
+          </p>
+        ) : (
+          expanded &&
+          detail.isPending && (
+            <div className={synopsisClasses}>
+              <Skeleton className="h-13.5" />
+            </div>
+          )
+        )}
+      </div>
 
       <div className="flex items-center justify-between gap-3">
         <span className="text-label-s">From {formatPrice(movie.fromPrice)}</span>
