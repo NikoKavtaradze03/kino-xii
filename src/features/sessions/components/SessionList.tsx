@@ -56,13 +56,11 @@ export function SessionList({
     <div className="flex flex-col">
       <div className="flex items-center justify-between gap-6">
         <div aria-live="polite" className="text-label-m">
-          {total === undefined ? (
-            <Skeleton className="h-4 w-36" />
-          ) : total === 0 ? (
-            'No sessions found'
-          ) : (
-            `Showing ${total} ${total === 1 ? 'session' : 'sessions'}`
-          )}
+          {total === undefined
+            ? !error && <Skeleton className="h-4 w-36" />
+            : total === 0
+              ? 'No sessions found'
+              : `Showing ${total} ${total === 1 ? 'session' : 'sessions'}`}
         </div>
         <SortSelect
           sorts={options.sorts}
