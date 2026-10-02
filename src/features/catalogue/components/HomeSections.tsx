@@ -1,5 +1,5 @@
 import type { UseQueryResult } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { Movie } from '@/shared/api/types'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -44,7 +44,12 @@ function RowContent({ query, emptyTitle, skeletonClassName, renderCard }: RowCon
   ))
 }
 
-const sectionLinkClasses = 'cursor-pointer text-label-m text-red hover:underline'
+// Both rows' "See all" go to the sessions page, as wired in Figma.
+const seeAllLink = (
+  <Link to="/sessions" className="text-label-m text-red hover:underline">
+    See all
+  </Link>
+)
 
 export function NowPlayingSection() {
   const query = useNowPlaying(NOW_PLAYING_LIMIT)
@@ -53,11 +58,8 @@ export function NowPlayingSection() {
     <MovieSection
       title="Now playing"
       uppercase
-      action={
-        <Link to="/sessions" className={sectionLinkClasses}>
-          See all
-        </Link>
-      }
+      innerShadow
+      action={seeAllLink}
       rowClassName="gap-4.25"
     >
       <RowContent
@@ -72,27 +74,9 @@ export function NowPlayingSection() {
 
 export function ComingSoonSection() {
   const query = useComingSoon()
-  const [showAll, setShowAll] = useState(false)
 
   return (
-    <MovieSection
-      title="Coming soon..."
-      uppercase
-      action={
-        query.data?.length ? (
-          <button
-            type="button"
-            aria-expanded={showAll}
-            onClick={() => setShowAll((value) => !value)}
-            className={sectionLinkClasses}
-          >
-            {showAll ? 'Show less' : 'See all'}
-          </button>
-        ) : null
-      }
-      wrap={showAll}
-      rowClassName="gap-5"
-    >
+    <MovieSection title="Coming soon..." uppercase action={seeAllLink} rowClassName="gap-5">
       <RowContent
         query={query}
         emptyTitle="No upcoming films announced yet"
