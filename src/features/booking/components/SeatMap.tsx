@@ -22,32 +22,38 @@ const seatStatus: Record<SeatLook, string> = {
 
 const MAP_WIDTH = 720
 const ROW_LABEL = 20
+// Figma's map at full size. Seats shrink to fit a wide hall into the map or a tall one into the
+// window, and the gaps and corners below shrink with them (`var(--seat) * px / 52` in the classes).
+const SEAT = 52
 const SEAT_GAP = 8
 const AISLE = 16
 const ROW_GAP = 10
-// Height of everything in the modal around the sections (header, step pills, screen, legend,
-// paddings, window margin); the rows share what is left of the window.
-const MODAL_CHROME = 355
-const SECTION_HEADING = 37
+const HEADING_GAP = 24
 const SECTION_GAP = 32
+// Everything in the modal around the sections that does not scale (header, step pills, screen,
+// legend, paddings, window margin), and each section heading's line.
+const MODAL_CHROME = 359
+const HEADING = 13
 
-/** Figma's 52px seats, made smaller when the hall is too wide for the map or too tall for the window. */
 function seatSize(seatMap: SeatMapData) {
   const rows = seatMap.sections.flatMap((section) => section.rows)
+  const sections = seatMap.sections.length
+
+  // Row width = label + seats + scaled gaps and aisles, all but the label in units of one seat.
   const widthFit = Math.min(
     ...rows.map(({ seats }) => {
       const aisles = seats.slice(0, -1).filter((seat) => seat.aisleAfter).length
-      const gaps = ROW_LABEL + SEAT_GAP * seats.length + (AISLE + SEAT_GAP) * aisles
-      return Math.floor((MAP_WIDTH - gaps) / seats.length)
+      const seatUnits = seats.length + (SEAT_GAP * (seats.length + aisles) + AISLE * aisles) / SEAT
+      return Math.floor((MAP_WIDTH - ROW_LABEL) / seatUnits)
     }),
   )
-  const sections = seatMap.sections.length
-  const fixedHeight =
-    MODAL_CHROME +
-    SECTION_HEADING * sections +
-    SECTION_GAP * (sections - 1) +
-    ROW_GAP * (rows.length - sections)
-  return `max(28px, min(52px, ${widthFit}px, calc((100dvh - ${fixedHeight}px) / ${rows.length})))`
+
+  const scaledGaps =
+    ROW_GAP * (rows.length - sections) + HEADING_GAP * sections + SECTION_GAP * (sections - 1)
+  const heightUnits = (rows.length + scaledGaps / SEAT).toFixed(3)
+  const fixedHeight = MODAL_CHROME + HEADING * sections
+
+  return `max(28px, min(${SEAT}px, ${widthFit}px, calc((100dvh - ${fixedHeight}px) / ${heightUnits})))`
 }
 
 function rowRange(rows: { label: string }[]) {
@@ -75,47 +81,57 @@ export function SeatMap({ seatMap, selectedIds, lostCodes, onToggle }: SeatMapPr
       <div className="mx-5 flex h-7.5 items-center justify-center rounded-b-[20px] bg-raised text-label-s">
         SCREEN
       </div>
-      {seatMap.sections.map((section) => (
-        <section key={section.name} aria-label={section.name} className="flex flex-col gap-6">
-          <h3 className="text-center text-label-s text-secondary uppercase">
-            {section.name} · {rowRange(section.rows)}
-          </h3>
-          <div className="flex flex-col items-center gap-2.5">
-            {section.rows.map((row) => (
-              <div key={row.label} className="flex items-center gap-2">
-                <span className="w-5 text-center text-label-s">{row.label}</span>
-                {row.seats.map((seat) => {
-                  const look = lookOf(seat)
-                  return [
-                    seat.state === 'unavailable' ? (
-                      <span key={seat.id} aria-hidden className="size-(--seat) shrink-0" />
-                    ) : (
-                      <button
-                        key={seat.id}
-                        type="button"
-                        disabled={look === 'sold' || look === 'held'}
-                        aria-pressed={look === 'selected'}
-                        aria-label={`Seat ${seat.code}, ${seatStatus[look]}`}
-                        onClick={() => onToggle(seat)}
-                        className={cn(
-                          'flex size-(--seat) shrink-0 items-center justify-center rounded-[10px] text-button',
-                          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-                          seatClasses[look],
-                        )}
-                      >
-                        {seat.label}
-                      </button>
-                    ),
-                    seat.aisleAfter && (
-                      <span key={`${seat.id}-aisle`} aria-hidden className="w-4 shrink-0" />
-                    ),
-                  ]
-                })}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="flex flex-col gap-[calc(var(--seat)*32/52)]">
+        {seatMap.sections.map((section) => (
+          <section
+            key={section.name}
+            aria-label={section.name}
+            className="flex flex-col gap-[calc(var(--seat)*24/52)]"
+          >
+            <h3 className="text-center text-label-s text-secondary uppercase">
+              {section.name} · {rowRange(section.rows)}
+            </h3>
+            <div className="flex flex-col items-center gap-[calc(var(--seat)*10/52)]">
+              {section.rows.map((row) => (
+                <div key={row.label} className="flex items-center gap-[calc(var(--seat)*8/52)]">
+                  <span className="w-5 text-center text-label-s">{row.label}</span>
+                  {row.seats.map((seat) => {
+                    const look = lookOf(seat)
+                    return [
+                      seat.state === 'unavailable' ? (
+                        <span key={seat.id} aria-hidden className="size-(--seat) shrink-0" />
+                      ) : (
+                        <button
+                          key={seat.id}
+                          type="button"
+                          disabled={look === 'sold' || look === 'held'}
+                          aria-pressed={look === 'selected'}
+                          aria-label={`Seat ${seat.code}, ${seatStatus[look]}`}
+                          onClick={() => onToggle(seat)}
+                          className={cn(
+                            'flex size-(--seat) shrink-0 items-center justify-center rounded-[calc(var(--seat)*10/52)] text-button',
+                            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+                            seatClasses[look],
+                          )}
+                        >
+                          {seat.label}
+                        </button>
+                      ),
+                      seat.aisleAfter && (
+                        <span
+                          key={`${seat.id}-aisle`}
+                          aria-hidden
+                          className="w-[calc(var(--seat)*16/52)] shrink-0"
+                        />
+                      ),
+                    ]
+                  })}
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   )
 }

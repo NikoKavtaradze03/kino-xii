@@ -10,6 +10,14 @@ import { SeatLegend, SeatMap } from './SeatMap'
 import { StepPills } from './StepPills'
 import { SubtotalBar } from './SubtotalBar'
 
+// Figma's modal is the same height with no seats and with every seat chosen, so this column always
+// keeps room for the heading, a card per seat and one single-line note (e.g. the seat limit).
+const HEADING = 15
+const GAP = 12
+const SEAT_CARD = 103
+const NOTE = 33
+const reservedHeight = (maxSeats: number) => HEADING + GAP + maxSeats * (SEAT_CARD + GAP) + NOTE
+
 type SeatsStepProps = {
   session: Session
   seatMap: SeatMapData
@@ -66,7 +74,7 @@ export function SeatsStep({
       }
       aside={
         <>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" style={{ minHeight: reservedHeight(maxSeats) }}>
             <h3 className="text-button">Your seats · Max {maxSeats}</h3>
             {blocker && <NoteBox>{blocker}</NoteBox>}
             {state.notice && (

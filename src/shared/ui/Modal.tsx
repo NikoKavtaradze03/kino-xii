@@ -23,7 +23,8 @@ export function ModalFrame({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-page/70 backdrop-blur-sm" />
+        {/* Figma: #101010 at 30 % with background blur 10, which renders like CSS blur(4px). */}
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-[#101010]/30 backdrop-blur-xs" />
         <Dialog.Content
           {...(!hasDescription && { 'aria-describedby': undefined })}
           className={cn(
