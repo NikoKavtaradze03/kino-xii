@@ -25,7 +25,7 @@ export function SessionCard({ session, onSelect }: SessionCardProps) {
         </span>
       </span>
 
-      <span className="flex w-full items-end gap-2">
+      <span className="flex w-full gap-2">
         <span className="flex min-w-0 flex-1 flex-col gap-2.5">
           <span className="text-body-s text-secondary">{session.language.name}</span>
           <span className="truncate text-label-s">
@@ -47,7 +47,7 @@ export function SessionCard({ session, onSelect }: SessionCardProps) {
               {session.seatsLeft} left
             </span>
           )}
-          <span className="text-button leading-3.75">₾{session.price}</span>
+          <span className="text-button">₾{session.price}</span>
         </span>
       </span>
     </button>

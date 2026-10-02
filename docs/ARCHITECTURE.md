@@ -248,7 +248,9 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
     gradients)
   - Text styles (size + line height + weight in one class): `text-display`, `text-h1`, `text-h2`,
     `text-h3`, `text-body-l`, `text-body-m`, `text-body-s`, `text-label-m`, `text-label-s`,
-    `text-overline` (6% tracking, used uppercase), `text-button`
+    `text-overline` (6% tracking, used uppercase), `text-button`. Line heights are whole pixels
+    (e.g. 12px × 1.3 → 16px), because Figma rounds every text line; fractional browser line heights
+    would drift a pixel or two down long stacks such as the filter sidebar.
   - Font: Archivo (self-hosted via `@fontsource-variable/archivo`)
 - **Layout target is 1920×1080.** Figma frames are 1728px wide; sizes, fonts and paddings are
   implemented 1:1 and full-width areas stretch to the viewport.
