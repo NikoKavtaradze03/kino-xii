@@ -35,8 +35,8 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
       onFocus={expand}
       onBlur={collapse}
       className={cn(
-        'flex h-113 shrink-0 flex-col justify-center gap-2.5 overflow-hidden rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-raised transition-[width] duration-300 ease-linear ring-inset',
-        expanded ? 'w-111.75 ring-1' : 'w-65',
+        'flex h-113 shrink-0 flex-col justify-center gap-2.5 overflow-hidden rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-1 transition-[width,box-shadow] duration-300 ease-[linear,ease-out] ring-inset',
+        expanded ? 'w-111.75 ring-raised' : 'w-65 ring-transparent',
       )}
     >
       {/* Fixed height (Figma's 380), so the price row below never moves while the image shrinks. */}

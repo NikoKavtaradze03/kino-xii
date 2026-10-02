@@ -1,8 +1,9 @@
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useCurrentUser } from '@/features/auth/hooks'
 import type { Movie } from '@/shared/api/types'
+import { ButtonLink } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorState } from '@/shared/ui/ErrorState'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -18,17 +19,17 @@ const SKELETON_COUNT = 6
 
 type RowContentProps = {
   query: UseQueryResult<Movie[]>
-  emptyTitle: string
+  empty: Omit<ComponentProps<typeof EmptyState>, 'className'>
   skeletonClassName: string
   renderCard: (movie: Movie) => ReactNode
 }
 
 /** The loading, error and empty states every movie row shares. */
-function RowContent({ query, emptyTitle, skeletonClassName, renderCard }: RowContentProps) {
+function RowContent({ query, empty, skeletonClassName, renderCard }: RowContentProps) {
   const { data, error, refetch, isRefetching } = query
 
   if (data) {
-    return data.length ? data.map(renderCard) : <EmptyState title={emptyTitle} className="w-full" />
+    return data.length ? data.map(renderCard) : <EmptyState {...empty} className="w-full" />
   }
   if (error) {
     return (
@@ -65,7 +66,11 @@ export function NowPlayingSection() {
     >
       <RowContent
         query={query}
-        emptyTitle="Nothing is showing right now"
+        empty={{
+          title: 'Nothing is showing right now',
+          description: 'Check back soon for new showtimes.',
+          action: <ButtonLink to="/sessions">Browse sessions</ButtonLink>,
+        }}
         skeletonClassName="h-113 w-65 rounded-[20px]"
         renderCard={(movie) => <NowPlayingCard key={movie.id} movie={movie} />}
       />
@@ -80,7 +85,10 @@ export function ComingSoonSection() {
     <MovieSection title="Coming soon..." uppercase action={seeAllLink} rowClassName="gap-5">
       <RowContent
         query={query}
-        emptyTitle="No upcoming films announced yet"
+        empty={{
+          title: 'No upcoming films announced yet',
+          description: 'Check back soon for new announcements.',
+        }}
         skeletonClassName="h-40 w-117.5 rounded-[20px]"
         renderCard={(movie) => <ComingSoonCard key={movie.id} movie={movie} />}
       />

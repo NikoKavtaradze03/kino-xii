@@ -6,12 +6,13 @@ import { useLogout } from '../hooks'
 import { ProfileStatus } from './ProfileStatus'
 import { UserAvatar } from './UserAvatar'
 
+// Heights are set per item: Figma's links are 40px tall, Log out 36px.
 const itemClasses =
-  'flex h-10 cursor-pointer items-center gap-2 pl-5 text-label-m outline-none data-highlighted:bg-card'
+  'flex cursor-pointer items-center gap-2 pl-5 text-label-m outline-none data-highlighted:bg-card'
 
 function MenuLink({ to, icon, label }: { to: string; icon: IconName; label: string }) {
   return (
-    <DropdownMenu.Item asChild className={itemClasses}>
+    <DropdownMenu.Item asChild className={`${itemClasses} h-10`}>
       <Link to={to}>
         <Icon name={icon} />
         {label}
@@ -62,7 +63,7 @@ export function UserMenu({ user }: { user: User }) {
           <DropdownMenu.Separator className="h-px bg-tint-white" />
 
           <DropdownMenu.Item
-            className={`${itemClasses} text-red`}
+            className={`${itemClasses} h-9 text-red`}
             disabled={logoutMutation.isPending}
             onSelect={() => logoutMutation.mutate()}
           >

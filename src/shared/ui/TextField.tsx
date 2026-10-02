@@ -40,9 +40,21 @@ export function TextField({
         >
           {label}
         </label>
+        {/* A press anywhere in the box (padding, icon) focuses the field, and a date field opens
+            the browser's picker; keyboard users reach the input directly. */}
         <div
+          onMouseDown={(event) => {
+            const input = event.currentTarget.querySelector('input')
+            if (!input || input.disabled || event.target === input) return
+            event.preventDefault()
+            input.focus()
+          }}
+          onClick={(event) => {
+            const input = event.currentTarget.querySelector('input')
+            if (input?.type === 'date' && !input.disabled) input.showPicker()
+          }}
           className={cn(
-            'flex h-10 items-center gap-1.5 rounded-xl border bg-card px-3.75 transition-colors',
+            'flex h-10 items-center gap-1.5 rounded-xl border bg-card px-3.75 transition-colors not-has-disabled:cursor-text',
             error
               ? 'border-red'
               : 'border-transparent focus-within:border-disabled focus-within:bg-card not-has-disabled:hover:border-disabled not-has-disabled:hover:bg-raised',

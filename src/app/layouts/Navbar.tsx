@@ -35,8 +35,10 @@ function AccountArea() {
 }
 
 export function Navbar() {
+  // Figma's fill is black → 51 % at 80 % → transparent, but positioned so only its lower part
+  // shows; these are the values measured on its export.
   return (
-    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-linear-to-b from-black via-black/51 via-80% to-transparent px-15 pt-7.5 pb-10">
+    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-linear-to-b from-black/57 via-black/51 via-32% to-transparent to-94% px-15 pt-7.5 pb-10">
       <nav className="flex items-center gap-9">
         <Logo className="gap-1.5 text-h2" />
         {/* Figma gives this link no hover or active state. */}
