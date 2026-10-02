@@ -1,5 +1,5 @@
 import { Dialog } from 'radix-ui'
-import { useEffect, useEffectEvent, useReducer, useRef, type ReactNode } from 'react'
+import { useEffect, useEffectEvent, useReducer, useRef, useState, type ReactNode } from 'react'
 import { requestLogin, useCurrentUser } from '@/features/auth/hooks'
 import { isApiError } from '@/shared/api/errors'
 import { useFilterOptions } from '@/shared/api/filterOptions'
@@ -7,7 +7,6 @@ import type { FilterOptions, SeatHold, SeatMap, Session, User } from '@/shared/a
 import { ButtonLink } from '@/shared/ui/Button'
 import { ErrorState } from '@/shared/ui/ErrorState'
 import { ModalClose, ModalFrame } from '@/shared/ui/Modal'
-import { Spinner } from '@/shared/ui/Spinner'
 import { bookingReducer, initialBookingState, type BookingState } from '../bookingReducer'
 import { holdStorage } from '../holdStorage'
 import {
@@ -23,6 +22,7 @@ import {
 import type { CheckoutValues } from '../schemas'
 import { BookingConfirmation } from './BookingConfirmation'
 import { BookingHeader } from './BookingHeader'
+import { BookingSkeleton } from './BookingSkeleton'
 import { CheckoutStep } from './CheckoutStep'
 import { SeatsStep } from './SeatsStep'
 
@@ -34,8 +34,8 @@ function BookingFrame({ onClose, children }: { onClose: () => void; children: Re
   )
 }
 
-/** Loading and error states, before there is a session to put in the header. */
-function BookingPlaceholder({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+/** An error before there is a session to put in the header. */
+function BookingError({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   return (
     <BookingFrame onClose={onClose}>
       <div className="flex justify-between">
@@ -67,18 +67,22 @@ function BookingGate({ sessionId, onClose }: { sessionId: number; onClose: () =>
   if (status === 'guest') return null
   if (user) return <BookingFlow sessionId={sessionId} user={user} onClose={onClose} />
 
-  return (
-    <BookingPlaceholder onClose={onClose}>
-      {status === 'error' ? (
+  if (status === 'error') {
+    return (
+      <BookingError onClose={onClose}>
         <ErrorState
           message="We couldn't load your account. Please try again."
           onRetry={retry}
           retrying={isRetrying}
         />
-      ) : (
-        <Spinner className="size-6" />
-      )}
-    </BookingPlaceholder>
+      </BookingError>
+    )
+  }
+
+  return (
+    <BookingFrame onClose={onClose}>
+      <BookingSkeleton />
+    </BookingFrame>
   )
 }
 
@@ -93,21 +97,21 @@ function BookingFlow({ sessionId, user, onClose }: BookingFlowProps) {
   const failed = [session, seatMap, options].find((query) => query.error)
   if (failed?.error) {
     return (
-      <BookingPlaceholder onClose={onClose}>
+      <BookingError onClose={onClose}>
         <ErrorState
           message={failed.error.message}
           onRetry={() => void failed.refetch()}
           retrying={failed.isRefetching}
         />
-      </BookingPlaceholder>
+      </BookingError>
     )
   }
 
   if (!session.data || !seatMap.data || !options.data || storedHold.isLoading) {
     return (
-      <BookingPlaceholder onClose={onClose}>
-        <Spinner className="size-6" />
-      </BookingPlaceholder>
+      <BookingFrame onClose={onClose}>
+        <BookingSkeleton />
+      </BookingFrame>
     )
   }
 
@@ -148,6 +152,8 @@ function BookingSteps({
   onClose,
 }: BookingStepsProps) {
   const [state, dispatch] = useReducer(bookingReducer, initialHold, startFrom)
+  // The seat map ripples in when the modal opens, not when coming back from checkout.
+  const [ripple, setRipple] = useState(initialHold === null)
   const holdSeats = useHoldSeats(session.id)
   const releaseHold = useReleaseHold(session.id)
   const createOrder = useCreateOrder()
@@ -176,7 +182,10 @@ function BookingSteps({
     requestInFlight.current = true
     const seats = state.seats.map(({ seatId, ticketType }) => ({ seatId, ticketType }))
     holdSeats.mutate(seats, {
-      onSuccess: (hold) => dispatch({ type: 'held', hold }),
+      onSuccess: (hold) => {
+        setRipple(false)
+        dispatch({ type: 'held', hold })
+      },
       onError: (error) => {
         if (isApiError(error) && error.kind === 'conflict') return loseSeats(error.contested)
         const fieldMessage = isApiError(error) && Object.values(error.fieldErrors)[0]?.[0]
@@ -256,6 +265,7 @@ function BookingSteps({
               state={state}
               dispatch={dispatch}
               blocker={blocker}
+              ripple={ripple}
               holding={holdSeats.isPending}
               onNext={next}
             />

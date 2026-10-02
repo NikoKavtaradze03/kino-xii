@@ -27,6 +27,8 @@ type SeatsStepProps = {
   dispatch: Dispatch<BookingAction>
   /** Why this account cannot book at all (incomplete profile, age rating), shown above the seats. */
   blocker: ReactNode
+  /** Play the seat map's entrance ripple (only when the modal first shows the map). */
+  ripple: boolean
   holding: boolean
   onNext: () => void
 }
@@ -39,6 +41,7 @@ export function SeatsStep({
   state,
   dispatch,
   blocker,
+  ripple,
   holding,
   onNext,
 }: SeatsStepProps) {
@@ -64,6 +67,7 @@ export function SeatsStep({
               seatMap={seatMap}
               selectedIds={state.seats.map((seat) => seat.seatId)}
               lostCodes={state.lost}
+              ripple={ripple}
               onToggle={(seat) =>
                 dispatch({ type: 'toggleSeat', seatId: seat.id, code: seat.code, max: maxSeats })
               }

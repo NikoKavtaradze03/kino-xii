@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Seat, SeatMap as SeatMapData } from '@/shared/api/types'
 import { cn } from '@/shared/lib/cn'
 import { isSelectable } from '../rules'
@@ -62,14 +62,52 @@ function rowRange(rows: { label: string }[]) {
   return first === last ? `Row ${first}` : `Rows ${first}-${last}`
 }
 
+const RIPPLE_MS_PER_SEAT = 16
+// In the prototype the wave travels down the rows at about half the speed it travels along them.
+const RIPPLE_ROW_WEIGHT = 1.8
+
+/**
+ * Entrance delay of every seat: seats appear in a wave spreading out from the middle of the front
+ * row, as in the prototype. Distances are in seat widths, measured on the drawn map.
+ */
+function rippleDelays(seatMap: SeatMapData) {
+  const delays = new Map<number, number>()
+  const rowPitch = 1 + ROW_GAP / SEAT
+  const sectionPitch = (HEADING + HEADING_GAP + SECTION_GAP) / SEAT
+  let y = 0
+
+  seatMap.sections.forEach((section, sectionIndex) => {
+    section.rows.forEach((row) => {
+      const xs: number[] = []
+      let x = 0
+      for (const seat of row.seats) {
+        xs.push(x + 0.5)
+        x += 1 + SEAT_GAP / SEAT + (seat.aisleAfter ? (AISLE + SEAT_GAP) / SEAT : 0)
+      }
+      const middle = (x - SEAT_GAP / SEAT) / 2
+      row.seats.forEach((seat, index) => {
+        const distance = Math.hypot(xs[index] - middle, y * RIPPLE_ROW_WEIGHT)
+        delays.set(seat.id, Math.round(distance * RIPPLE_MS_PER_SEAT))
+      })
+      y += rowPitch
+    })
+    if (sectionIndex < seatMap.sections.length - 1) y += sectionPitch - ROW_GAP / SEAT
+  })
+  return delays
+}
+
 type SeatMapProps = {
   seatMap: SeatMapData
   selectedIds: number[]
   lostCodes: string[]
+  /** Play the entrance ripple; only the first time the map is shown. */
+  ripple: boolean
   onToggle: (seat: Seat) => void
 }
 
-export function SeatMap({ seatMap, selectedIds, lostCodes, onToggle }: SeatMapProps) {
+export function SeatMap({ seatMap, selectedIds, lostCodes, ripple, onToggle }: SeatMapProps) {
+  const [delays] = useState(() => (ripple ? rippleDelays(seatMap) : null))
+
   const lookOf = (seat: Seat): SeatLook => {
     if (selectedIds.includes(seat.id)) return 'selected'
     if (seat.state === 'sold' || lostCodes.includes(seat.code)) return 'sold'
@@ -108,9 +146,13 @@ export function SeatMap({ seatMap, selectedIds, lostCodes, onToggle }: SeatMapPr
                           aria-pressed={look === 'selected'}
                           aria-label={`Seat ${seat.code}, ${seatStatus[look]}`}
                           onClick={() => onToggle(seat)}
+                          style={
+                            delays ? { animationDelay: `${delays.get(seat.id)}ms` } : undefined
+                          }
                           className={cn(
                             'flex size-(--seat) shrink-0 items-center justify-center rounded-[calc(var(--seat)*10/52)] text-button',
                             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+                            delays && 'animate-seat-in motion-reduce:animate-none',
                             seatClasses[look],
                           )}
                         >
