@@ -36,7 +36,7 @@ function HeroSlide({ movie, synopsis, synopsisLoading, active }: HeroSlideProps)
         className={cn(
           'size-full object-[50%_30%] transition-transform ease-linear motion-reduce:transition-none',
           active
-            ? 'scale-110 duration-[7000ms] motion-reduce:scale-100 starting:scale-100'
+            ? 'scale-110 duration-[12000ms] motion-reduce:scale-100 starting:scale-100'
             : 'scale-100 delay-300 duration-0',
         )}
       />
