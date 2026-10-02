@@ -14,7 +14,10 @@ function refundNote(order: Order) {
     return `Refunded on ${format(parseISO(order.refundedAt), 'd MMM')}`
   if (!order.isUpcoming) return 'This session has ended'
   if (!order.isRefundable) return `Refunds close ${REFUND_CUTOFF_HOURS} hours before the session`
-  const cutoff = subHours(parseISO(order.session.startsAt), REFUND_CUTOFF_HOURS)
+  // `startsAt` carries the cinema's wall-clock time with a +00:00 offset, so parsing it would shift
+  // it by the browser's time zone; the date and time fields are the local time as shown.
+  const { date, time } = order.session
+  const cutoff = subHours(parseISO(`${date}T${time}`), REFUND_CUTOFF_HOURS)
   return `Refundable until ${format(cutoff, 'HH:mm, EEE d MMM')}`
 }
 
