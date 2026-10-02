@@ -21,6 +21,7 @@
   --color-tint-orange: #e27e041a;
 
   --color-shadow: #00000033;
+  --color-black: #000000;
 
   --font-sans: 'Archivo Variable', sans-serif;
 
@@ -71,6 +72,17 @@
 
   --spacing-gutter: 51px;
   --spacing-header: 118px;
+
+  --animate-progress: progress 6s linear forwards;
+
+  @keyframes progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 }
 
 @layer base {
