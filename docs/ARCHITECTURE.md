@@ -190,17 +190,42 @@ Four sections, each a component in `features/catalogue/components` that owns its
   (`after:absolute after:inset-0`) instead of wrapping the card in a link, since interactive elements
   must not be nested.
 
-## Sessions page URL state
+## Sessions page
+
+A sticky filter sidebar on the left (venue, date, format, language, time of day) and the list on the
+right: sort menu, "Showing X sessions" counter, sessions grouped by film and pagination (10 films per
+page; the API paginates films, not sessions).
+
+### URL state
 
 The URL is the single source of truth for filters, sort and page; there is no mirrored component state.
-`useSessionFilters` parses the query string into typed filters and exposes setters.
+`useSessionFilters` parses the query string into typed filters and exposes setters; the pure parse and
+serialise functions live in `features/sessions/filters.ts`.
 
-- Query params match the API: `date`, `venues[]`, `formats[]`, `languages[]`, `bands[]`, `sort`, `page`.
-- Changing any filter or the sort resets `page` to 1.
-- Selected venues narrow the available formats to those venues' `formats`; selected formats the venues
-  do not offer are dropped.
-- Filters are part of the query key, so changing the URL refetches automatically, and back/forward,
-  refresh and shared links all restore the same view.
+- The URL follows the brief's example:
+  `/sessions?venue=galleria,batumi&date=2026-11-14&format=max&language=georgian-dub&time=evening&sort=price_asc&page=2`.
+  `api.ts` sends it in the API's format (`venues[]=galleria&venues[]=batumi&...`).
+- Defaults (today, the first sort, page 1, no filters) are left out of the URL.
+- Values not in `/filter-options`, and dates outside the next 7 days, are ignored, because the API
+  would answer 422; an old or edited link still opens.
+- Every change navigates, so Back restores the previous filters. Filter changes keep the scroll
+  position; a page change scrolls to the top.
+- Changing any filter or the sort resets `page` to 1. "Clear filters" clears everything except the date.
+- Selected venues narrow the format list to the formats those venues offer; selected formats they do
+  not offer are dropped.
+- Filters are part of the query key, so a new URL refetches (skeletons while loading), and
+  back/forward, refresh and shared links all restore the same view.
+
+### Layout and list
+
+- The sidebar is sticky. When it is taller than the window (1006px vs ~940px on a 1080p screen with
+  browser chrome), it scrolls with the page until its bottom is 24px above the window bottom and sticks
+  there (a negative `top` computed from its measured height), so every filter stays reachable.
+- The date pills keep Figma's 37px width, so the row scrolls like the Home rows; the selected day is
+  scrolled into view.
+- Each film's sessions are one row, clipped at the list edge as in Figma; extra sessions scroll sideways.
+- Sold-out sessions stay visible but disabled ("Sold out", 40 % opacity); 5 or fewer seats left are red.
+- Choosing a session asks a guest to log in first, then opens the booking modal through `?booking=<id>`.
 
 ## Booking flow
 
@@ -228,7 +253,9 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
     gradients)
   - Text styles (size + line height + weight in one class): `text-display`, `text-h1`, `text-h2`,
     `text-h3`, `text-body-l`, `text-body-m`, `text-body-s`, `text-label-m`, `text-label-s`,
-    `text-overline` (6% tracking, used uppercase), `text-button`
+    `text-overline` (6% tracking, used uppercase), `text-button`. Line heights are whole pixels
+    (e.g. 12px × 1.3 → 16px), because Figma rounds every text line; fractional browser line heights
+    would drift a pixel or two down long stacks such as the filter sidebar.
   - Font: Archivo (self-hosted via `@fontsource-variable/archivo`)
 - **Layout target is 1920×1080.** Figma frames are 1728px wide; sizes, fonts and paddings are
   implemented 1:1 and full-width areas stretch to the viewport.
