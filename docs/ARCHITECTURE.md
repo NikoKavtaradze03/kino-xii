@@ -30,6 +30,7 @@ src/
   features/
     auth/               login, register, session store, requireAuth
     catalogue/          movies: hero, rows, cards, details, recently viewed
+    search/             header search typeahead
     sessions/           sessions page: filters (URL state), list, date strip
     booking/            booking modal: seat map, hold, checkout, confirmation
     profile/            profile form and completeness status
@@ -247,6 +248,23 @@ synopsis, badges), the sessions section on the left and a Details panel on the r
   can still choose a session; the booking flow checks their age after they log in.
 - The Details panel follows Figma (director, main cast, duration, release date, formats, from price,
   and the rating note with the rating's description) plus a Genre row, which the brief requires.
+
+## Header search
+
+`HeaderSearch` (`features/search`) sits in the navbar on every page; it is in Figma, not in the brief.
+
+- The pill opens Figma's overlay in place when focused: it widens from 380 to 480px, the page is
+  dimmed (black 20 %) and a panel below shows the prompt, the results or "No results". Clicking
+  outside, Escape and the clear (×) button close it and empty the field, as in the Figma prototype.
+- `GET /search?q=` (titles only, at most 6 films) runs 300 ms after the last keystroke
+  (`useDebouncedValue`). Earlier results stay on screen while the next ones load; a skeleton shows
+  only before the first results.
+- The matched part of each title is white, the rest grey. Rows show "Film · 12+ · 134 min" and
+  "from ₾16", or "Coming Soon" in orange. Choosing a row opens the film's page.
+- Keyboard: it is an ARIA combobox. Up/Down move the highlight (the same look as hover, announced
+  through `aria-activedescendant`), Enter opens the highlighted film, Escape closes.
+- The prompt says "Search by title" instead of Figma's "title, director or cast", because the API only
+  matches titles.
 
 ## Booking flow
 
