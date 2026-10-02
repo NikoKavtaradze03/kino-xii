@@ -16,7 +16,7 @@ type StyleProps = {
 const variantClasses: Record<Variant, string> = {
   primary: 'bg-red text-primary',
   secondary: 'bg-primary text-page',
-  transparent: 'bg-tint-white text-primary backdrop-blur-[22px] hover:bg-secondary',
+  transparent: 'bg-tint-white text-primary hover:bg-secondary hover:backdrop-blur-[22px]',
   outline: 'border border-secondary text-primary hover:bg-tint-white',
 }
 
