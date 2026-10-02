@@ -2,20 +2,39 @@ import type { ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { Icon, type IconName } from './Icon'
 
+type Size = 'lg' | 'md' | 'sm' | 'xs'
+
+// `md` is Figma's base Badge; the others are the paddings its screens override it with.
+const sizeClasses: Record<Size, string> = {
+  lg: 'px-3 py-1.5',
+  md: 'px-2.5 py-1.5',
+  sm: 'px-2 py-1',
+  xs: 'px-1.75 py-1',
+}
+
 type BadgeProps = {
   tone?: 'neutral' | 'red'
+  size?: Size
   icon?: IconName
   title?: string
   className?: string
   children: ReactNode
 }
 
-export function Badge({ tone = 'neutral', icon, title, className, children }: BadgeProps) {
+export function Badge({
+  tone = 'neutral',
+  size = 'md',
+  icon,
+  title,
+  className,
+  children,
+}: BadgeProps) {
   return (
     <span
       title={title}
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-label-s whitespace-nowrap',
+        'inline-flex items-center gap-1 rounded-full text-label-s whitespace-nowrap',
+        sizeClasses[size],
         tone === 'red' ? 'bg-tint-red text-red' : 'bg-tint-white text-primary',
         className,
       )}

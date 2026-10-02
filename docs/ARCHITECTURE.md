@@ -160,6 +160,36 @@ reference data identical for everyone sets `sessionIndependent`. The `meta` type
 - `applyServerErrors(error, setError, aliases)` maps 422 `errors` onto fields (`aliases` renames API keys
   such as `password_confirmation`); any other failure becomes `root.server`, rendered by `FormError`.
 
+## Home page
+
+Four sections, each a component in `features/catalogue/components` that owns its loading
+(skeleton), error (message + Retry) and empty states; `pages/HomePage` only stacks them.
+
+- **Hero** (`GET /movies/featured`): slides crossfade (300 ms) and the image slowly zooms (to 110 %
+  over 7 s, reset after the fade-out). The red progress bar's CSS animation (`animate-progress`, 6 s)
+  is the timer: its `animationend` moves to the next film, so pausing the animation (keyboard focus
+  inside the hero) pauses the carousel, and with `prefers-reduced-motion` there is no autoplay or zoom. List responses have no `synopsis`, so each featured
+  film's `GET /movies/{slug}` is fetched too; the details page later reuses that cache entry.
+- **Recently viewed**: no endpoint, so `recentlyViewed.ts` keeps up to 10 films in `localStorage`
+  (newest first, no duplicates) and exposes them through `useSyncExternalStore`. The movie details page
+  adds to it. As in Figma, the section is shown only to signed-in users, and hidden while the list is
+  empty.
+- **Now playing** (`GET /movies/now-playing?limit=10`): cards widen on hover or focus as in the
+  Figma prototype: the poster is cropped to the wider box and the synopsis (fetched at that moment)
+  fades in at its final position; text sizes and the price row never move. "See all" goes to the
+  sessions page.
+- **Coming soon** (`GET /movies/coming-soon`): "See all" goes to the sessions page, as in Figma.
+  Notify Me runs through `useRequireAuth` (logs in first if needed) and then
+  `POST /movies/{slug}/notify`; after success the movie lists are invalidated and the button shows
+  "Reminder set" because the server now returns `isNotified: true`. There is no unsubscribe endpoint.
+- Rows scroll horizontally inside the 70px page margins (clipped there, as in Figma; Now Playing also
+  has Figma's faint inner edge shadow) and fade out
+  at their right end. As in Figma there is no visible scrollbar; rows scroll with a trackpad,
+  Shift + wheel or keyboard focus.
+- Cards that contain another control (Coming soon: Notify Me) use a stretched title link
+  (`after:absolute after:inset-0`) instead of wrapping the card in a link, since interactive elements
+  must not be nested.
+
 ## Sessions page URL state
 
 The URL is the single source of truth for filters, sort and page; there is no mirrored component state.
@@ -194,14 +224,16 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
 - Design tokens mirror the Figma variables and live in `src/styles/globals.css` under `@theme`.
   Tailwind's default colour palette is disabled, so only design-system colours can be used.
   - Colours: `page`, `card`, `raised`, `primary`, `secondary`, `disabled`, `red`, `green`, `orange`,
-    `tint-white`, `tint-red`, `tint-green`, `shadow`
+    `tint-white`, `tint-red`, `tint-green`, `tint-orange`, `shadow`, `black` (Figma's image and navbar
+    gradients)
   - Text styles (size + line height + weight in one class): `text-display`, `text-h1`, `text-h2`,
     `text-h3`, `text-body-l`, `text-body-m`, `text-body-s`, `text-label-m`, `text-label-s`,
     `text-overline` (6% tracking, used uppercase), `text-button`
   - Font: Archivo (self-hosted via `@fontsource-variable/archivo`)
 - **Layout target is 1920×1080.** Figma frames are 1728px wide; sizes, fonts and paddings are
   implemented 1:1 and full-width areas stretch to the viewport.
-  - Page content uses `px-gutter` (51px). The navbar uses 60px and the footer 34px, as in Figma.
+  - Page content uses `px-gutter` (51px). The navbar uses 60px, the footer 34px and the Home
+    sections 70px, as in Figma.
   - The navbar is absolutely positioned over the top of every page (a transparent gradient over the
     hero), so pages without a hero start with `pt-header` (118px).
 - Icons come from the Figma icon set as `<Icon name="..." />` (`shared/ui/Icon.tsx`), 16×16, drawn in
@@ -212,9 +244,13 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
   `[..px]` values; use arbitrary values only off the scale (e.g. `rounded-[28px]`).
 - `cn(...)` joins class names and drops falsy values. There is no class-merging library, so components
   avoid receiving utilities that conflict with their own.
-- `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint), `outline`
-  (Notify); sizes `md` / `sm`; `loading` shows a spinner and disables it. `ButtonLink` has the same look
+- `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint, blurred
+  only on hover), `outline` (Notify; an inset ring so it keeps Figma's size); colour changes fade over
+  300 ms; sizes `md` / `sm`; `loading` shows a spinner and disables it. `ButtonLink` has the same look
   as a router link.
+- **Scope rule:** build what the Figma screens and the brief show, nothing more. The Figma prototype's
+  wiring tells us which states exist and where links go; its timings are a guide (300 ms is used for
+  hover fades), and its navigation fades are not reproduced.
 - Reusable visual components live in `shared/ui`; features compose them rather than restyling raw elements.
 
 ## Conventions

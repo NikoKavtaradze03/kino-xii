@@ -58,7 +58,7 @@ export function UserMenu({ user }: { user: User }) {
         <DropdownMenu.Content
           align="end"
           sideOffset={12}
-          className="z-30 flex w-[302px] flex-col gap-1 overflow-hidden rounded-2xl border border-raised bg-page pb-2.5 shadow-[0_20px_50px_-10px_var(--color-shadow)]"
+          className="z-30 flex w-[302px] flex-col gap-1 overflow-hidden rounded-2xl bg-page pb-2.5"
         >
           <div className="flex flex-col gap-4 px-5 pt-5">
             <div className="flex items-center gap-2.5">

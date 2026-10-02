@@ -1,8 +1,7 @@
-import { NavLink } from 'react-router'
+import { Link } from 'react-router'
 import { UserMenu } from '@/features/auth/components/UserMenu'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useAuthStore } from '@/features/auth/store'
-import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/ui/Button'
 import { Logo } from '@/shared/ui/Logo'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -36,17 +35,13 @@ function AccountArea() {
 
 export function Navbar() {
   return (
-    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-linear-to-b from-page/60 to-transparent px-15 pt-7.5 pb-10">
+    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-linear-to-b from-black via-black/51 via-80% to-transparent px-15 pt-7.5 pb-10">
       <nav className="flex items-center gap-9">
         <Logo className="gap-1.5 text-h2" />
-        <NavLink
-          to="/sessions"
-          className={({ isActive }) =>
-            cn('text-overline uppercase transition-colors hover:text-red', isActive && 'text-red')
-          }
-        >
+        {/* Figma gives this link no hover or active state. */}
+        <Link to="/sessions" className="text-overline uppercase">
           Sessions
-        </NavLink>
+        </Link>
       </nav>
 
       <AccountArea />

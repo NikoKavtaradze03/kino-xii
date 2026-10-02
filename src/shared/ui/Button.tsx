@@ -16,8 +16,9 @@ type StyleProps = {
 const variantClasses: Record<Variant, string> = {
   primary: 'bg-red text-primary',
   secondary: 'bg-primary text-page',
-  transparent: 'bg-tint-white text-primary backdrop-blur-[22px] hover:bg-secondary',
-  outline: 'border border-secondary text-primary hover:bg-tint-white',
+  transparent: 'bg-tint-white text-primary hover:bg-secondary hover:backdrop-blur-[22px]',
+  // An inset ring, like Figma's stroke, does not add to the button's size (97×28 for Notify Me).
+  outline: 'text-primary ring-1 ring-secondary ring-inset hover:bg-tint-white',
 }
 
 const sizeClasses: Record<Size, string> = {
@@ -27,7 +28,7 @@ const sizeClasses: Record<Size, string> = {
 
 function buttonClasses({ variant = 'primary', size = 'md' }: StyleProps, className?: string) {
   return cn(
-    'inline-flex cursor-pointer items-center justify-center gap-1 rounded-full whitespace-nowrap transition-colors',
+    'inline-flex cursor-pointer items-center justify-center gap-1 rounded-full whitespace-nowrap transition-colors duration-300 ease-out',
     'disabled:cursor-not-allowed disabled:bg-disabled disabled:text-secondary',
     variantClasses[variant],
     sizeClasses[size],
