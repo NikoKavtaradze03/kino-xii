@@ -309,6 +309,35 @@ modal; dismissing it removes the parameter.
 - **Confirmation** renders from the `POST /orders` response: reference, film, seats, ticket types,
   total; "View my tickets" and "Close". Paying invalidates sessions, movies and `['me', 'tickets']`.
 
+## Profile page
+
+`/profile` (behind `RequireAuth`) has two Radix tabs kept in the URL: Personal Information
+(default) and My Tickets (`?tab=tickets`, plus `&tickets=past` for the Past list). The page only
+composes `features/profile` and `features/tickets`.
+
+- **Status:** Figma's profile status box (shared with the user menu): "Profile incomplete" with
+  "Please complete your profile to enable booking", or "Profile Complete ✓". When complete, the
+  server-computed `age` and the `/filter-options` age ratings give the notice ("You are 14, you
+  cannot buy tickets for 16+ or 18+ titles").
+- **Form:** react-hook-form + zod (`profile/schemas.ts`) with the brief's exact messages, checked in
+  the brief's order (mobile: required → digits only → starts with 5 → 9 digits). Email is shown
+  disabled. Date of birth is a native date input (the whole field opens the picker); the preferred
+  venue is a Radix select (`SelectField`) with a "No preference" option. "Save changes" is enabled
+  only when the form has changed and is valid.
+- **Saving** sends a multipart `POST /profile` with `_method=PUT`: the API is Laravel, and PHP does
+  not parse multipart bodies on a real PUT (a plain POST returns 405, so this reaches the PUT
+  route). The response is written into `['me']`, so the navbar dot and the booking checks update,
+  and the form resets to it. 422 field errors land on their inputs.
+- **My Tickets:** one `GET /tickets` (`['me', 'tickets']`) split by the server's `isUpcoming`;
+  counts on the Upcoming / Past switch and the upcoming count on the My Tickets tab. Each card is
+  built from the order alone (poster, title, rating, runtime, date, venue + hall, format + language,
+  seat chips, reference, total). Loading = two card skeletons; each list has empty and error states.
+- **Refund** is enabled only by `isRefundable`; the note under the button says until when, or why
+  not ("Refunds close 2 hours before the session", "Refunded on 28 Sep", "This session has ended").
+  Past cards keep Figma's faded, disabled button. Refunding asks for confirmation in a modal; a 422
+  message shows inside it; a ref blocks a second click. The returned order replaces the cached one,
+  then tickets, sessions and movies are refetched (the seats are on sale again).
+
 ## Styling
 
 - Design tokens mirror the Figma variables and live in `src/styles/globals.css` under `@theme`.
