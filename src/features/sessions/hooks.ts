@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router'
-import { useRequireAuth } from '@/features/auth/hooks'
+import { useNavigate, useSearchParams } from 'react-router'
 import type { FilterOptions } from '@/shared/api/types'
 import { upcomingDates } from '@/shared/lib/dates'
 import { fetchSessions, sessionKeys } from './api'
@@ -52,19 +51,4 @@ export function useSessionFilters(options: FilterOptions) {
     setPage: (page: number) => show({ ...filters, page }, false),
     clearFilters: () => setFilters({ venues: [], formats: [], languages: [], bands: [] }),
   }
-}
-
-/** Guests log in first; the booking modal (built later) opens from `?booking=<session id>`. */
-export function useOpenBooking() {
-  const requireAuth = useRequireAuth()
-  const navigate = useNavigate()
-  const { search } = useLocation()
-
-  return (sessionId: number) =>
-    requireAuth(() =>
-      navigate(
-        { search: `${search ? `${search}&` : '?'}booking=${sessionId}` },
-        { preventScrollReset: true },
-      ),
-    )
 }

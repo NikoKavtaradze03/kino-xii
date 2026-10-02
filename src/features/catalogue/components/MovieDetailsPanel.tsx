@@ -1,6 +1,6 @@
 import type { MovieDetail } from '@/shared/api/types'
 import { formatDate } from '@/shared/lib/format'
-import { NoteBox } from './NoteBox'
+import { NoteBox } from '@/shared/ui/NoteBox'
 
 function DetailRow({ label, value }: { label: string; value: string | null }) {
   if (!value) return null

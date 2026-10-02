@@ -1,3 +1,4 @@
+import { useOpenBooking } from '@/features/booking/hooks'
 import type { FilterOptions } from '@/shared/api/types'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -5,7 +6,7 @@ import { ErrorState } from '@/shared/ui/ErrorState'
 import { Pagination } from '@/shared/ui/Pagination'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { activeFilterCount } from '../filters'
-import { useOpenBooking, useSessions, type useSessionFilters } from '../hooks'
+import { useSessions, type useSessionFilters } from '../hooks'
 import { MovieSessions } from './MovieSessions'
 import { SortSelect } from './SortSelect'
 
