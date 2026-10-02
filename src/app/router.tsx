@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router'
+import { RequireAuth } from '@/features/auth/components/RequireAuth'
 import { HomePage } from '@/pages/HomePage'
 import { MoviePage } from '@/pages/MoviePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -15,7 +16,14 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'sessions', element: <SessionsPage /> },
       { path: 'movies/:slug', element: <MoviePage /> },
-      { path: 'profile', element: <ProfilePage /> },
+      {
+        path: 'profile',
+        element: (
+          <RequireAuth>
+            <ProfilePage />
+          </RequireAuth>
+        ),
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

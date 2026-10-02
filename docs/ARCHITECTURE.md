@@ -6,19 +6,19 @@ It is front end only; all data comes from the Kino XII REST API
 
 ## Stack
 
-| Concern          | Choice                                      | Why                                                                     |
-| ---------------- | ------------------------------------------- | ----------------------------------------------------------------------- |
-| Build / language | Vite, React, TypeScript (strict)            | Fast dev server, typed code                                             |
-| Routing          | React Router                                | Routes + `useSearchParams` for URL-driven state                         |
-| Server state     | TanStack Query                              | Caching, loading/error states, retries, invalidation after mutations    |
-| HTTP             | Axios                                       | Interceptors for the auth header and global 401 handling                |
-| Forms            | react-hook-form + zod                       | `onBlur` validation, schema-defined messages, `setError` for API errors |
-| Client state     | Zustand                                     | Auth session and global modal state, readable outside React             |
-| UI primitives    | Radix UI                                    | Accessible Dialog, Select, Tabs, Tooltip, Checkbox; styled by us        |
-| Styling          | Tailwind CSS v4                             | Figma tokens defined once in `@theme`                                   |
-| Dates            | date-fns                                    | Date strip, formatting, expiry checks                                   |
-| Lint / format    | oxlint, Prettier (+ Tailwind class sorting) |                                                                         |
-| Hosting          | Vercel                                      | Auto-deploy from `main`; SPA rewrite in `vercel.json`                   |
+| Concern          | Choice                                      | Why                                                                             |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
+| Build / language | Vite, React, TypeScript (strict)            | Fast dev server, typed code                                                     |
+| Routing          | React Router                                | Routes + `useSearchParams` for URL-driven state                                 |
+| Server state     | TanStack Query                              | Caching, loading/error states, retries, invalidation after mutations            |
+| HTTP             | Axios                                       | Interceptors for the auth header and global 401 handling                        |
+| Forms            | react-hook-form + zod                       | validate on blur, then live; schema-defined messages, `setError` for API errors |
+| Client state     | Zustand                                     | Auth session and global modal state, readable outside React                     |
+| UI primitives    | Radix UI                                    | Accessible Dialog, Select, Tabs, Tooltip, Checkbox; styled by us                |
+| Styling          | Tailwind CSS v4                             | Figma tokens defined once in `@theme`                                           |
+| Dates            | date-fns                                    | Date strip, formatting, expiry checks                                           |
+| Lint / format    | oxlint, Prettier (+ Tailwind class sorting) |                                                                                 |
+| Hosting          | Vercel                                      | Auto-deploy from `main`; SPA rewrite in `vercel.json`                           |
 
 ## Folder structure
 
@@ -100,16 +100,65 @@ Buttons that send requests are disabled while the request is in flight.
 
 ## Authentication
 
-- The token is stored in `localStorage`. On boot, if a token exists, `GET /me` restores the user;
-  a 401 drops the token and the user continues as a guest.
-- `requireAuth(action)` runs the action immediately when signed in. Otherwise it opens the login modal
-  and stores the action as pending; a successful login or registration runs it, so the user never
-  clicks twice.
-- `POST /login` returns 401 for wrong credentials; that one is shown inside the modal and must not
-  trigger the global "session expired" handling.
-- A 401 from any protected request clears the token and opens the login modal with "retry this request"
-  as the pending action.
+State is split by ownership:
+
+- **Server state** — the signed-in user — is the TanStack Query entry `['me']` (`useCurrentUser()`).
+- **Client state** — the token and which auth modal is open — is a Zustand store (`features/auth/store.ts`).
+  The token is mirrored to `localStorage` (`shared/api/token.ts`) so the axios client can read it.
+
+Flow:
+
+- `useCurrentUser()` returns an explicit `status`: `guest` (no token), `loading`, `authenticated` or
+  `error`, plus `retry()`. Every consumer renders all four: the navbar shows a skeleton while loading and
+  "Couldn't load your account" + Retry on error; `RequireAuth` shows a spinner or an `ErrorState`.
+- On boot, if a token exists, `GET /me` restores the user; a 401 there drops the token and the user
+  continues as a guest. A network/server failure is the `error` status — the token is kept.
+- Login and registration store the token, reset the session cache (below) with the returned user and
+  close the modal.
+- **Waiting for a login** is a promise: `requestLogin()` opens the modal (unless one is already open) and
+  resolves `true` when the user signs in or registers, `false` when they dismiss it. Concurrent callers
+  share it, and switching between the login and register modals keeps it pending.
+- `useRequireAuth()(action)` runs the action now when signed in, otherwise after `requestLogin()` resolves
+  `true` — the user never clicks twice.
+- **401 replay** lives in the axios response interceptor. Each request records the token it was sent
+  with (`sentWithToken`). On a 401 for a request not marked `skipAuthRedirect`:
+  - if the current token differs from the one the request carried, the session already changed (for
+    example a parallel 401 already led to a new login): the request is simply re-sent;
+  - otherwise the session ends, `requestLogin()` is awaited, and on success the request is re-sent with
+    the new token. The caller's promise stays pending meanwhile (buttons keep their loading state).
+
+  `/login`, `/register`, `/logout` and `/me` set `skipAuthRedirect`, because their 401s mean something else.
+
+### Session cache rules
+
+Whenever the signed-in user changes (login, registration, logout, expired session), `resetSessionCache`:
+
+1. cancels in-flight queries, so an old user's response cannot land afterwards;
+2. **removes** everything under `['me', ...]` — private data is never shown to the next user, even
+   briefly (invalidating would keep showing it while refetching);
+3. invalidates the remaining queries, whose responses can vary per user (`isNotified`, `isMine`);
+4. leaves queries marked `meta: { sessionIndependent: true }` alone (e.g. `/filter-options`).
+
+So: **private data uses a key starting with `'me'`** (`['me', 'tickets']`, `['me', 'hold', id]`), and
+reference data identical for everyone sets `sessionIndependent`. The `meta` type is declared in
+`shared/api/react-query.d.ts`.
+
+- `RequireAuth` guards pages: arriving signed out opens the login modal (dismissing it goes home);
+  signing out while on the page goes home.
 - Booking additionally requires `user.profileComplete`; when false the user is sent to complete the profile.
+
+## Forms
+
+- react-hook-form with `zodResolver` and `mode: 'onTouched'`: a field is first validated when it loses
+  focus (as the brief requires), then on every change, so an error clears as soon as the value is fixed.
+  (`onBlur` would keep the error until the next blur.) Schemas live in each feature's `schemas.ts` and
+  hold the exact messages.
+- `TextField` shows Figma's states: hover, focus, error (red border, icon and message) and valid
+  (green check, once the field was touched and has no error).
+- Submit buttons are enabled from `useSchemaValid(control, schema)` rather than `formState.isValid`,
+  because `setError` (used for API errors) forces `isValid` to false until the next blur.
+- `applyServerErrors(error, setError, aliases)` maps 422 `errors` onto fields (`aliases` renames API keys
+  such as `password_confirmation`); any other failure becomes `root.server`, rendered by `FormError`.
 
 ## Sessions page URL state
 
@@ -157,6 +206,10 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
     hero), so pages without a hero start with `pt-header` (118px).
 - Icons come from the Figma icon set as `<Icon name="..." />` (`shared/ui/Icon.tsx`), 16×16, drawn in
   `currentColor` so they take the surrounding text colour.
+- Overlays use Radix primitives: `Modal` (Dialog: dimmed + blurred backdrop, closes on X, Escape and
+  backdrop click, traps focus) and `DropdownMenu` for the account menu.
+- Prefer Tailwind's spacing scale (`n × 4px`, quarter steps allowed: `pt-6.75` = 27px) over arbitrary
+  `[..px]` values; use arbitrary values only off the scale (e.g. `rounded-[28px]`).
 - `cn(...)` joins class names and drops falsy values. There is no class-merging library, so components
   avoid receiving utilities that conflict with their own.
 - `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint), `outline`

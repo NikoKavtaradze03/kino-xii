@@ -12,6 +12,7 @@ export const filterOptionsQuery = queryOptions({
   queryFn: fetchFilterOptions,
   staleTime: Infinity,
   gcTime: Infinity,
+  meta: { sessionIndependent: true },
 })
 
 export function useFilterOptions() {
