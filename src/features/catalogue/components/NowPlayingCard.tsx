@@ -10,6 +10,10 @@ import { genreAndRuntime, moviePath } from '../lib'
 import { AgeBadge } from './AgeBadge'
 import { MovieImage } from './MovieImage'
 
+// Expanded text is laid out at the final width (447 − 2×14 padding) right away, so the growing card
+// reveals it instead of re-truncating it every frame; its font size grows along with the card.
+const textGrowClasses = 'truncate transition-[font-size,line-height] duration-300 ease-linear'
+
 /** Grows on hover/focus to show the backdrop and synopsis (fetched then; list items have none). */
 export function NowPlayingCard({ movie }: { movie: Movie }) {
   const [expanded, setExpanded] = useState(false)
@@ -41,8 +45,16 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
 
         <div className={cn('flex flex-col', expanded ? 'gap-2' : 'gap-1.75')}>
           <div className={cn('flex flex-col', expanded ? 'gap-2' : 'gap-1.75')}>
-            <h3 className={cn('truncate', expanded ? 'text-h2' : 'text-h3')}>{movie.title}</h3>
-            <p className={cn('text-secondary', expanded ? 'text-body-m' : 'text-body-s')}>
+            <h3 className={cn(textGrowClasses, expanded ? 'w-104.75 text-h2' : 'text-h3')}>
+              {movie.title}
+            </h3>
+            <p
+              className={cn(
+                textGrowClasses,
+                'text-secondary',
+                expanded ? 'w-104.75 text-body-m' : 'text-body-s',
+              )}
+            >
               {genreAndRuntime(movie)}
             </p>
           </div>
@@ -51,7 +63,7 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
           </div>
         </div>
 
-        {/* Laid out at the expanded width from the start and faded in once the card has grown,
+        {/* Laid out at the expanded width from the start and faded in while the card grows,
             so the text never reflows during the animation. */}
         {expanded &&
           (detail.data ? (
