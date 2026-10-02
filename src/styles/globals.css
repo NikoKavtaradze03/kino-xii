@@ -75,6 +75,18 @@
 
   --animate-progress: progress 6s linear forwards;
 
+  /* Starts after the 300ms card expansion; `both` keeps it hidden during the delay. */
+  --animate-fade-in-late: fade-in 200ms ease-out 300ms both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   @keyframes progress {
     from {
       transform: scaleX(0);

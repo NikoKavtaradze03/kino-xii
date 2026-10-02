@@ -51,11 +51,19 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
           </div>
         </div>
 
+        {/* Laid out at the expanded width from the start and faded in once the card has grown,
+            so the text never reflows during the animation. */}
         {expanded &&
           (detail.data ? (
-            <p className="line-clamp-3 pr-5 text-body-m text-secondary">{detail.data.synopsis}</p>
+            <p className="line-clamp-3 w-104.75 animate-fade-in-late pr-5 text-body-m text-secondary">
+              {detail.data.synopsis}
+            </p>
           ) : (
-            detail.isPending && <Skeleton className="h-13.5 w-full" />
+            detail.isPending && (
+              <div className="animate-fade-in-late">
+                <Skeleton className="h-13.5 w-104.75" />
+              </div>
+            )
           ))}
       </div>
 
