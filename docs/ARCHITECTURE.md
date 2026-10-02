@@ -271,20 +271,43 @@ synopsis, badges), the sessions section on the left and a Details panel on the r
 
 ## Booking flow
 
-The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with explicit states:
-`selecting → holding → checkout → paying → confirmed`, plus `expired` and `conflict` transitions.
+A two-step modal (Seats → Checkout) plus a confirmation view, in `features/booking`. It opens over
+the current page from `?booking=<session id>` (`useOpenBooking` asks a guest to log in first;
+`BookingModal` is mounted in `RootLayout`). The parameter is edited as text, so the sessions
+page's other parameters keep their exact form. A guest arriving through such a link sees the login
+modal; dismissing it removes the parameter.
 
-- The modal is opened through the URL (`?booking=<sessionId>`); the hold id is kept in `sessionStorage`
-  so a refresh restores the countdown via `GET /holds/{id}`.
-- The seat map is rendered entirely from `GET /sessions/{id}/seats`
-  (sections → rows → seats, `aisleAfter` spacers, `unavailable` gaps, row labels from data).
-- Seat rules live in `booking/rules.ts` as pure functions: seat cap, child-ticket age block,
-  age gate, price = `session.price × ticketType.priceRatio`.
-- The hold countdown is computed from the absolute `expiresAt`, not a local counter.
-- 409 on hold or order: report the lost seats by code, drop them, keep the rest, refetch the map.
-- Hold expiry: clear the selection, return to step 1, refetch the map, show the expiry message.
-- Going back from checkout keeps the hold; closing the modal releases it (`DELETE /holds/{id}`).
-- The confirmation view renders from the `POST /orders` response.
+- **State** is a reducer (`bookingReducer.ts`): `step` (`seats` / `checkout` / `confirmed`), the
+  selected seats with their ticket types, the live `hold`, the `order`, seat codes `lost` to other
+  users and the current `notice`. Request progress comes from the mutations; a ref also blocks a
+  second Next or Pay in the same tick, before `isPending` has re-rendered.
+- **Access:** Next is disabled, with a note, when the profile is incomplete (link to the profile) or
+  the user is younger than the film's rating.
+- **Seat map** comes entirely from `GET /sessions/{id}/seats`: one block per section with its
+  heading ("Stalls · Rows A-E"), row labels from the data, a spacer after `aisleAfter` seats and an
+  empty slot for `unavailable` ones. Seats are Figma's 52px, smaller when the hall is too wide for
+  the 720px column or too tall for the window (a CSS `min()` of both). Held seats are hatched
+  (`bg-hatched`); my own held seats (`isMine`) stay selectable. The map refetches when the modal
+  opens, after a 409 and after expiry.
+- **Rules** (`rules.ts`, pure): price = `session.price × ticketType.priceRatio`; a ticket type is
+  refused when the film's `minAge` ≥ its `blockedFromRatingAge` (Child on 16+/18+): the seat card
+  shows the reason and Next is disabled. A 4th seat shows "You can choose up to 3 seats per order."
+  The limit and ratios come from `/filter-options`. The API has no seat type, so the seat card shows
+  the section name.
+- **Hold:** Next posts `POST /sessions/{id}/holds` (holding again replaces the previous hold). The
+  hold id is kept in `sessionStorage`, so a refresh resumes checkout through `GET /holds/{id}`
+  (`useStoredHold`; an expired or unknown hold is forgotten). The timer counts down from the
+  absolute `expiresAt`; it shows whenever a hold is live, including after going back to the map.
+- **409** (hold or order): the lost seats are named in a note, drawn as sold and dropped; the rest
+  stay selected; the map refetches.
+- **Expiry** (the timer reaching zero, or a 422 without field errors from `POST /orders`): the
+  selection is cleared, the modal returns to the map, the map refetches and "Your hold time
+  expired. Please re-select your seats." is shown.
+- **Checkout:** react-hook-form + zod (`schemas.ts`); name, email and mobile are prefilled from the
+  profile. Card fields accept spaces, as the API does. 422 field errors land on their inputs. Back
+  (or the Seats step pill) keeps the hold; closing the modal releases it (`DELETE /holds/{id}`).
+- **Confirmation** renders from the `POST /orders` response: reference, film, seats, ticket types,
+  total; "View my tickets" and "Close". Paying invalidates sessions, movies and `['me', 'tickets']`.
 
 ## Styling
 
@@ -308,7 +331,9 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
 - Icons come from the Figma icon set as `<Icon name="..." />` (`shared/ui/Icon.tsx`), 16×16, drawn in
   `currentColor` so they take the surrounding text colour.
 - Overlays use Radix primitives: `Modal` (Dialog: dimmed + blurred backdrop, closes on X, Escape and
-  backdrop click, traps focus) and `DropdownMenu` for the account menu.
+  backdrop click, traps focus) and `DropdownMenu` for the account menu. `ModalFrame` and
+  `ModalClose` are the same backdrop, panel and × for modals with their own header (booking).
+- `NoteBox` (Figma's orange rating note) is the shared look for warnings and blocked actions.
 - Prefer Tailwind's spacing scale (`n × 4px`, quarter steps allowed: `pt-6.75` = 27px) over arbitrary
   `[..px]` values; use arbitrary values only off the scale (e.g. `rounded-[28px]`).
 - `cn(...)` joins class names and drops falsy values. There is no class-merging library, so components
