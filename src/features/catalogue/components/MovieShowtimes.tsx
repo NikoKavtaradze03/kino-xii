@@ -5,10 +5,10 @@ import { useOpenBooking } from '@/features/sessions/hooks'
 import type { MovieDetail, Session, VenueSessions } from '@/shared/api/types'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorState } from '@/shared/ui/ErrorState'
+import { NoteBox } from '@/shared/ui/NoteBox'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useMovieSessions } from '../hooks'
 import { DayPicker } from './DayPicker'
-import { NoteBox } from './NoteBox'
 import { SessionTicket } from './SessionTicket'
 
 type MovieShowtimesProps = {
