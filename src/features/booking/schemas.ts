@@ -3,6 +3,24 @@ import { z } from 'zod'
 // The API strips spaces from card and mobile numbers, so "4242 4242 4242 4242" is valid as typed.
 const withoutSpaces = (value: string) => value.replace(/\s/g, '')
 
+/** Keeps up to 16 digits, grouped in fours: "4242424242424242" → "4242 4242 4242 4242". */
+export const formatCardNumber = (value: string) =>
+  value
+    .replace(/\D/g, '')
+    .slice(0, 16)
+    .replace(/(\d{4})(?=\d)/g, '$1 ')
+
+/**
+ * Keeps up to 4 digits as MM/YY, adding the slash once the month is typed. While deleting, "12/"
+ * becomes "12" instead of getting its slash back, so the user can erase past it.
+ */
+export function formatExpiry(value: string, deleting: boolean) {
+  const digits = value.replace(/\D/g, '').slice(0, 4)
+  if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  if (digits.length === 2 && !deleting) return `${digits}/`
+  return digits
+}
+
 /** "09/30" is valid until the end of September 2030. */
 function isNotExpired(expiry: string) {
   const [month, year] = expiry.split('/').map(Number)
