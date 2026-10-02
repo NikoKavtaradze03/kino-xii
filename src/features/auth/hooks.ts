@@ -3,6 +3,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type Query,
   type QueryClient,
 } from '@tanstack/react-query'
 import { useCallback } from 'react'
@@ -30,24 +31,32 @@ const meQuery = queryOptions({
   staleTime: Infinity,
 })
 
-// Other cached data (notify flags, held seats, tickets) depends on who is signed in.
-function refetchUserScopedData(queryClient: QueryClient) {
-  return queryClient.invalidateQueries({
-    predicate: (query) => query.queryKey[0] !== authKeys.me[0],
+const isSessionDependent = (query: Query) => !query.meta?.sessionIndependent
+const isPrivate = (query: Query) => query.queryKey[0] === authKeys.me[0]
+
+/**
+ * Called whenever the signed-in user changes. Private data is removed (not just marked stale, which
+ * would still show it while refetching); public data that varies per user, such as notify flags,
+ * is refetched; session-independent data is left alone.
+ */
+function resetSessionCache(queryClient: QueryClient, user: User | null) {
+  void queryClient.cancelQueries({ predicate: isSessionDependent })
+  queryClient.removeQueries({ queryKey: authKeys.me })
+  queryClient.setQueryData(authKeys.me, user)
+  void queryClient.invalidateQueries({
+    predicate: (query) => isSessionDependent(query) && !isPrivate(query),
   })
 }
 
 function startSession(queryClient: QueryClient, user: User, token: string) {
   useAuthStore.getState().setToken(token)
-  queryClient.setQueryData(authKeys.me, user)
-  void refetchUserScopedData(queryClient)
+  resetSessionCache(queryClient, user)
   useAuthStore.getState().completeLogin()
 }
 
 function endSession(queryClient: QueryClient) {
   useAuthStore.getState().setToken(null)
-  queryClient.setQueryData(authKeys.me, null)
-  void refetchUserScopedData(queryClient)
+  resetSessionCache(queryClient, null)
 }
 
 /** A protected request came back 401: drop the session, ask the user to log in, then replay it. */

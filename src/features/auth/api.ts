@@ -1,6 +1,8 @@
 import { apiClient } from '@/shared/api/client'
 import type { ApiResponse, User } from '@/shared/api/types'
 
+// Everything private to the signed-in user is cached under ['me', ...] (e.g. ['me', 'tickets']),
+// so a session change can drop all of it at once.
 export const authKeys = {
   me: ['me'] as const,
 }
