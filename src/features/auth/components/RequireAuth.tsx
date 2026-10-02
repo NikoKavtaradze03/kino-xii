@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
+import { ErrorState } from '@/shared/ui/ErrorState'
+import { Spinner } from '@/shared/ui/Spinner'
 import { useCurrentUser } from '../hooks'
 import { requestLogin, useAuthStore } from '../store'
 
@@ -9,7 +11,7 @@ import { requestLogin, useAuthStore } from '../store'
  */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const token = useAuthStore((state) => state.token)
-  const { user } = useCurrentUser()
+  const { status, retry, isRetrying } = useCurrentUser()
   const navigate = useNavigate()
   const wasSignedIn = useRef(token !== null)
 
@@ -27,5 +29,26 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     })
   }, [token, navigate])
 
-  return user ? children : null
+  if (status === 'authenticated') return children
+
+  if (status === 'error') {
+    return (
+      <ErrorState
+        className="pt-header"
+        message="We couldn't load your account. Please try again."
+        onRetry={retry}
+        retrying={isRetrying}
+      />
+    )
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="flex justify-center pt-header">
+        <Spinner className="size-6" />
+      </div>
+    )
+  }
+
+  return null
 }

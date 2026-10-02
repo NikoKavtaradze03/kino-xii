@@ -70,13 +70,22 @@ export function installUnauthorizedHandler(queryClient: QueryClient) {
   })
 }
 
+export type SessionStatus = 'guest' | 'loading' | 'authenticated' | 'error'
+
 export function useCurrentUser() {
   const token = useAuthStore((state) => state.token)
-  const { data, isPending } = useQuery({ ...meQuery, enabled: token !== null })
+  const { data, isError, isFetching, refetch } = useQuery({ ...meQuery, enabled: token !== null })
+
+  let status: SessionStatus = 'loading'
+  if (!token) status = 'guest'
+  else if (data) status = 'authenticated'
+  else if (isError) status = 'error'
 
   return {
-    user: token ? (data ?? null) : null,
-    isLoading: token !== null && isPending,
+    status,
+    user: status === 'authenticated' ? data : null,
+    retry: () => void refetch(),
+    isRetrying: isError && isFetching,
   }
 }
 

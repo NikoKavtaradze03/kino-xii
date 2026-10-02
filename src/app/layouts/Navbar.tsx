@@ -8,11 +8,21 @@ import { Logo } from '@/shared/ui/Logo'
 import { Skeleton } from '@/shared/ui/Skeleton'
 
 function AccountArea() {
-  const { user, isLoading } = useCurrentUser()
+  const { status, user, retry, isRetrying } = useCurrentUser()
   const openModal = useAuthStore((state) => state.openModal)
 
-  if (isLoading) return <Skeleton className="h-10 w-32" />
+  if (status === 'loading') return <Skeleton className="h-10 w-32" />
   if (user) return <UserMenu user={user} />
+  if (status === 'error') {
+    return (
+      <div className="flex items-center gap-3">
+        <p className="text-label-s text-secondary">Couldn&apos;t load your account</p>
+        <Button variant="transparent" icon="error" onClick={retry} loading={isRetrying}>
+          Retry
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center gap-3">
