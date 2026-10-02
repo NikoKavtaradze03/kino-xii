@@ -165,10 +165,10 @@ reference data identical for everyone sets `sessionIndependent`. The `meta` type
 Four sections, each a component in `features/catalogue/components` that owns its loading
 (skeleton), error (message + Retry) and empty states; `pages/HomePage` only stacks them.
 
-- **Hero** (`GET /movies/featured`): slides crossfade (300 ms). The red progress bar's CSS animation
-  (`animate-progress`, 6 s) is the timer: its `animationend` moves to the next film, so pausing the
-  animation (pointer or keyboard focus inside the hero) pauses the carousel, and with
-  `prefers-reduced-motion` there is no autoplay. List responses have no `synopsis`, so each featured
+- **Hero** (`GET /movies/featured`): slides crossfade (300 ms) and the image slowly zooms (to 110 %
+  over 7 s, reset after the fade-out). The red progress bar's CSS animation (`animate-progress`, 6 s)
+  is the timer: its `animationend` moves to the next film, so pausing the animation (keyboard focus
+  inside the hero) pauses the carousel, and with `prefers-reduced-motion` there is no autoplay or zoom. List responses have no `synopsis`, so each featured
   film's `GET /movies/{slug}` is fetched too; the details page later reuses that cache entry.
 - **Recently viewed**: no endpoint, so `recentlyViewed.ts` keeps up to 10 films in `localStorage`
   (newest first, no duplicates) and exposes them through `useSyncExternalStore`. The movie details page
