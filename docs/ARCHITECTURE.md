@@ -108,19 +108,41 @@ State is split by ownership:
 
 Flow:
 
+- `useCurrentUser()` returns an explicit `status`: `guest` (no token), `loading`, `authenticated` or
+  `error`, plus `retry()`. Every consumer renders all four: the navbar shows a skeleton while loading and
+  "Couldn't load your account" + Retry on error; `RequireAuth` shows a spinner or an `ErrorState`.
 - On boot, if a token exists, `GET /me` restores the user; a 401 there drops the token and the user
-  continues as a guest. While it loads, the navbar shows a skeleton instead of the login buttons.
-- Login and registration put the returned user straight into `['me']`, store the token, invalidate the
-  other queries (some responses depend on who is signed in) and close the modal.
-- **Waiting for a login** is a promise: `requestLogin()` opens the modal and resolves `true` when the user
-  signs in or registers, `false` when they dismiss it. Switching between the login and register modals
-  keeps it pending.
+  continues as a guest. A network/server failure is the `error` status — the token is kept.
+- Login and registration store the token, reset the session cache (below) with the returned user and
+  close the modal.
+- **Waiting for a login** is a promise: `requestLogin()` opens the modal (unless one is already open) and
+  resolves `true` when the user signs in or registers, `false` when they dismiss it. Concurrent callers
+  share it, and switching between the login and register modals keeps it pending.
 - `useRequireAuth()(action)` runs the action now when signed in, otherwise after `requestLogin()` resolves
   `true` — the user never clicks twice.
-- **401 replay** lives in the axios response interceptor: a 401 on any request not marked
-  `skipAuthRedirect` ends the session, awaits `requestLogin()`, and on success re-sends the same request
-  with the new token. The caller's promise simply stays pending (buttons stay in their loading state).
+- **401 replay** lives in the axios response interceptor. Each request records the token it was sent
+  with (`sentWithToken`). On a 401 for a request not marked `skipAuthRedirect`:
+  - if the current token differs from the one the request carried, the session already changed (for
+    example a parallel 401 already led to a new login): the request is simply re-sent;
+  - otherwise the session ends, `requestLogin()` is awaited, and on success the request is re-sent with
+    the new token. The caller's promise stays pending meanwhile (buttons keep their loading state).
+
   `/login`, `/register`, `/logout` and `/me` set `skipAuthRedirect`, because their 401s mean something else.
+
+### Session cache rules
+
+Whenever the signed-in user changes (login, registration, logout, expired session), `resetSessionCache`:
+
+1. cancels in-flight queries, so an old user's response cannot land afterwards;
+2. **removes** everything under `['me', ...]` — private data is never shown to the next user, even
+   briefly (invalidating would keep showing it while refetching);
+3. invalidates the remaining queries, whose responses can vary per user (`isNotified`, `isMine`);
+4. leaves queries marked `meta: { sessionIndependent: true }` alone (e.g. `/filter-options`).
+
+So: **private data uses a key starting with `'me'`** (`['me', 'tickets']`, `['me', 'hold', id]`), and
+reference data identical for everyone sets `sessionIndependent`. The `meta` type is declared in
+`shared/api/react-query.d.ts`.
+
 - `RequireAuth` guards pages: arriving signed out opens the login modal (dismissing it goes home);
   signing out while on the page goes home.
 - Booking additionally requires `user.profileComplete`; when false the user is sent to complete the profile.
