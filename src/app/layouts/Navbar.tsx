@@ -36,7 +36,7 @@ function AccountArea() {
 
 export function Navbar() {
   return (
-    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-linear-to-b from-page/60 to-transparent px-15 pt-7.5 pb-10">
+    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-linear-to-b from-black via-black/51 via-80% to-transparent px-15 pt-7.5 pb-10">
       <nav className="flex items-center gap-9">
         <Logo className="gap-1.5 text-h2" />
         <NavLink
