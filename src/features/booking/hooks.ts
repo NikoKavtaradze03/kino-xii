@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useRequireAuth } from '@/features/auth/hooks'
+import { isApiError } from '@/shared/api/errors'
 import {
   bookingKeys,
   createOrder,
@@ -9,6 +10,7 @@ import {
   fetchSeatMap,
   fetchSession,
   holdSeats,
+  releaseHold,
   type SeatChoice,
 } from './api'
 import { holdStorage } from './holdStorage'
@@ -29,14 +31,26 @@ export function useSeatMap(sessionId: number) {
   })
 }
 
-/** The hold saved before a page refresh, if any; read once when the modal opens. */
+/**
+ * The hold saved before a page refresh, read once when the modal opens: the hold while it is still
+ * live, otherwise null (an expired or unknown hold is forgotten).
+ */
 export function useStoredHold(sessionId: number) {
   const [holdId] = useState(() => holdStorage.get(sessionId))
   return useQuery({
     queryKey: bookingKeys.hold(holdId ?? ''),
-    queryFn: () => fetchHold(holdId ?? ''),
+    queryFn: async () => {
+      const hold = await fetchHold(holdId ?? '').catch((error: unknown) => {
+        if (isApiError(error) && (error.kind === 'notFound' || error.kind === 'forbidden')) {
+          return null
+        }
+        throw error
+      })
+      if (hold?.isLive) return hold
+      holdStorage.clear(sessionId)
+      return null
+    },
     enabled: holdId !== null,
-    staleTime: 0,
     gcTime: 0,
   })
 }
@@ -45,6 +59,18 @@ export function useHoldSeats(sessionId: number) {
   return useMutation({
     mutationFn: (seats: SeatChoice[]) => holdSeats(sessionId, seats),
     onSuccess: (hold) => holdStorage.set(sessionId, hold.holdId),
+  })
+}
+
+/** The seats go straight back on the map instead of staying held until the hold lapses. */
+export function useReleaseHold(sessionId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: releaseHold,
+    onSettled: () => {
+      holdStorage.clear(sessionId)
+      void queryClient.invalidateQueries({ queryKey: bookingKeys.seats(sessionId) })
+    },
   })
 }
 

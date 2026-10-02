@@ -13,6 +13,8 @@ import type { User } from '@/shared/api/types'
 import { authKeys, fetchMe, login, logout, register } from './api'
 import { requestLogin, useAuthStore } from './store'
 
+export { requestLogin }
+
 async function fetchMeOrSignOut() {
   try {
     return await fetchMe()
