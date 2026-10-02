@@ -1,30 +1,41 @@
 import { createBrowserRouter } from 'react-router'
 import { RequireAuth } from '@/features/auth/components/RequireAuth'
 import { HomePage } from '@/pages/HomePage'
-import { MoviePage } from '@/pages/MoviePage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
-import { ProfilePage } from '@/pages/ProfilePage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
-import { SessionsPage } from '@/pages/SessionsPage'
 import { RootLayout } from './layouts/RootLayout'
 
+// Home ships in the main bundle; the other pages load when first visited.
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'sessions', element: <SessionsPage /> },
-      { path: 'movies/:slug', element: <MoviePage /> },
+      {
+        path: 'sessions',
+        lazy: async () => ({ Component: (await import('@/pages/SessionsPage')).SessionsPage }),
+      },
+      {
+        path: 'movies/:slug',
+        lazy: async () => ({ Component: (await import('@/pages/MoviePage')).MoviePage }),
+      },
       {
         path: 'profile',
-        element: (
-          <RequireAuth>
-            <ProfilePage />
-          </RequireAuth>
-        ),
+        lazy: async () => {
+          const { ProfilePage } = await import('@/pages/ProfilePage')
+          return {
+            element: (
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            ),
+          }
+        },
       },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        path: '*',
+        lazy: async () => ({ Component: (await import('@/pages/NotFoundPage')).NotFoundPage }),
+      },
     ],
   },
 ])

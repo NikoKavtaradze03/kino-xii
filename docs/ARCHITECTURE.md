@@ -64,6 +64,14 @@ features/<name>/
 
 Components never call axios directly.
 
+### Code splitting
+
+The first download holds the app shell and the home page. The other pages load on first visit
+(`lazy` routes in `router.tsx`). The auth modals (`lazy` in `RootLayout`) and the booking flow
+(`BookingGate`, loaded by `BookingModal` once the browser is idle) download in the background
+after the first render, so they are usually ready before they are opened. This keeps
+react-hook-form, zod and the booking code out of the initial bundle.
+
 ## Data layer
 
 - **Static reference data** (`GET /filter-options`: venues, formats, languages, time bands, sorts,
@@ -273,7 +281,7 @@ synopsis, badges), the sessions section on the left and a Details panel on the r
 
 A two-step modal (Seats → Checkout) plus a confirmation view, in `features/booking`. It opens over
 the current page from `?booking=<session id>` (`useOpenBooking` asks a guest to log in first;
-`BookingModal` is mounted in `RootLayout`). The parameter is edited as text, so the sessions
+`BookingModal` is mounted in `RootLayout` and renders the lazily loaded `BookingGate`). The parameter is edited as text, so the sessions
 page's other parameters keep their exact form. A guest arriving through such a link sees the login
 modal; dismissing it removes the parameter.
 

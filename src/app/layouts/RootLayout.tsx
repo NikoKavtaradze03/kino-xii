@@ -1,8 +1,13 @@
+import { lazy, Suspense } from 'react'
 import { Outlet, ScrollRestoration } from 'react-router'
-import { AuthModals } from '@/features/auth/components/AuthModals'
 import { BookingModal } from '@/features/booking/components/BookingModal'
 import { Footer } from './Footer'
 import { Navbar } from './Navbar'
+
+// The forms and their validation libraries stay out of the first download.
+const AuthModals = lazy(async () => ({
+  default: (await import('@/features/auth/components/AuthModals')).AuthModals,
+}))
 
 export function RootLayout() {
   return (
@@ -13,7 +18,9 @@ export function RootLayout() {
       </main>
       <Footer />
       <BookingModal />
-      <AuthModals />
+      <Suspense fallback={null}>
+        <AuthModals />
+      </Suspense>
       <ScrollRestoration />
     </div>
   )
