@@ -6,10 +6,12 @@ declare module 'axios' {
   interface AxiosRequestConfig {
     // Login, register and the boot-time /me check handle their own 401s.
     skipAuthRedirect?: boolean
+    sentWithToken?: string | null
   }
 }
 
-type UnauthorizedHandler = () => Promise<boolean>
+/** Receives the token the failed request carried, so a stale 401 cannot end a newer session. */
+type UnauthorizedHandler = (sentWithToken: string | null) => Promise<boolean>
 
 let unauthorizedHandler: UnauthorizedHandler | null = null
 
@@ -25,6 +27,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const token = tokenStorage.get()
   if (token) config.headers.Authorization = `Bearer ${token}`
+  config.sentWithToken = token
   return config
 })
 
@@ -40,7 +43,7 @@ apiClient.interceptors.response.use(
       !config.skipAuthRedirect &&
       unauthorizedHandler
     ) {
-      const signedIn = await unauthorizedHandler()
+      const signedIn = await unauthorizedHandler(config.sentWithToken ?? null)
       if (signedIn) return apiClient({ ...config, skipAuthRedirect: true })
     }
 

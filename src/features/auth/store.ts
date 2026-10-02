@@ -39,8 +39,12 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 }))
 
-/** Opens the login modal and resolves once the user signs in (true) or dismisses it (false). */
+/**
+ * Opens the login modal and resolves once the user signs in (true) or dismisses it (false).
+ * Concurrent callers share the same modal; an already open register modal is left as is.
+ */
 export function requestLogin() {
-  useAuthStore.getState().openModal('login')
+  const { modal, openModal } = useAuthStore.getState()
+  if (!modal) openModal('login')
   return new Promise<boolean>((resolve) => loginWaiters.push(resolve))
 }

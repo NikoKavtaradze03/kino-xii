@@ -52,8 +52,11 @@ function endSession(queryClient: QueryClient) {
 
 /** A protected request came back 401: drop the session, ask the user to log in, then replay it. */
 export function installUnauthorizedHandler(queryClient: QueryClient) {
-  setUnauthorizedHandler(() => {
-    endSession(queryClient)
+  setUnauthorizedHandler((sentWithToken) => {
+    const { token } = useAuthStore.getState()
+    // The session changed after this request left (e.g. a parallel 401 already led to a new login).
+    if (token && token !== sentWithToken) return Promise.resolve(true)
+    if (token) endSession(queryClient)
     return requestLogin()
   })
 }
