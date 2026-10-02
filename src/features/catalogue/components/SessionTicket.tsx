@@ -9,24 +9,23 @@ type SessionTicketProps = {
   onSelect: (session: Session) => void
 }
 
-/** Figma's ticket-shaped session tile; it sits on a `card`-coloured hall card. */
+/**
+ * Figma's ticket-shaped session tile (207×81); it sits on a `card`-coloured hall card. Figma puts the
+ * language beside the format badge, which only fits a 3-letter code, so it sits under the seat count
+ * instead and every tile keeps Figma's size.
+ */
 export function SessionTicket({ session, disabled, onSelect }: SessionTicketProps) {
   return (
     <button
       type="button"
       disabled={disabled || session.isSoldOut}
       onClick={() => onSelect(session)}
-      className="flex h-20.25 min-w-51.75 shrink-0 cursor-pointer rounded-xl bg-page shadow-[0_1px_2px_var(--color-shadow)] disabled:cursor-not-allowed disabled:opacity-40"
+      className="flex h-20.25 w-51.75 shrink-0 cursor-pointer rounded-xl bg-page shadow-[0_1px_2px_var(--color-shadow)] disabled:cursor-not-allowed disabled:opacity-40"
     >
-      <span className="flex flex-1 flex-col items-center justify-center gap-2 px-2.5">
+      <span className="flex flex-1 flex-col items-center justify-center gap-2">
         <span className="text-h2">{session.time}</span>
-        <span className="flex items-center gap-1.5">
-          <span className="text-body-s whitespace-nowrap text-secondary">
-            {languageCode(session.language)}
-          </span>
-          <span className="rounded-full bg-card px-3 py-1 text-label-s text-[#e3e3e3b3]">
-            {session.format.name}
-          </span>
+        <span className="rounded-full bg-card px-3 py-1 text-label-s text-[#e3e3e3b3]">
+          {session.format.name}
         </span>
       </span>
 
@@ -45,6 +44,9 @@ export function SessionTicket({ session, disabled, onSelect }: SessionTicketProp
             {session.seatsLeft} left
           </span>
         )}
+        <span className="text-body-s whitespace-nowrap text-secondary">
+          {languageCode(session.language)}
+        </span>
       </span>
     </button>
   )
