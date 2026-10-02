@@ -11,12 +11,14 @@ import { AgeBadge } from './AgeBadge'
 import { MovieImage } from './MovieImage'
 
 // Where the synopsis sits once expanded: 12 padding + 224 image + 10 gap + 71 title block + 10 gap.
-// It is positioned there from the start, so it never moves or pushes the rest of the card.
-const synopsisClasses = 'absolute top-81.75 left-3 w-105.75 animate-fade-in pr-5'
+// It is positioned there from the start, so it never moves or pushes the rest of the card. It fades
+// in and out with the card's 300ms; `starting:` also fades it in when it first appears.
+const synopsisClasses =
+  'absolute top-81.75 left-3 w-105.75 pr-5 transition-opacity duration-300 ease-linear starting:opacity-0'
 
 /**
  * Grows on hover/focus as in the Figma prototype: only the width, the image and the border change;
- * the synopsis (fetched then, list items have none) fades in at its final position.
+ * the synopsis (fetched then, list items have none) fades in and out at its final position.
  */
 export function NowPlayingCard({ movie }: { movie: Movie }) {
   const [expanded, setExpanded] = useState(false)
@@ -59,18 +61,26 @@ export function NowPlayingCard({ movie }: { movie: Movie }) {
         </div>
       </div>
 
-      {expanded &&
-        (detail.data ? (
-          <p className={cn(synopsisClasses, 'line-clamp-3 text-body-m text-secondary')}>
-            {detail.data.synopsis}
-          </p>
-        ) : (
-          detail.isPending && (
-            <div className={synopsisClasses}>
-              <Skeleton className="h-13.5" />
-            </div>
-          )
-        ))}
+      {/* Stays mounted once loaded, so collapsing can fade it out instead of removing it. */}
+      {detail.data ? (
+        <p
+          aria-hidden={!expanded}
+          className={cn(
+            synopsisClasses,
+            'line-clamp-3 text-body-m text-secondary',
+            expanded ? 'opacity-100' : 'opacity-0',
+          )}
+        >
+          {detail.data.synopsis}
+        </p>
+      ) : (
+        expanded &&
+        detail.isPending && (
+          <div className={synopsisClasses}>
+            <Skeleton className="h-13.5" />
+          </div>
+        )
+      )}
 
       <div className="flex items-center justify-between gap-3">
         <span className="text-label-s">From {formatPrice(movie.fromPrice)}</span>
