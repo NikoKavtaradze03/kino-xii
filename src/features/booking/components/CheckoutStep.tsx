@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import type { ChangeEvent } from 'react'
 import type { SeatHold, Session, TicketType, User } from '@/shared/api/types'
 import { formatDate } from '@/shared/lib/format'
 import { applyServerErrors, useSchemaValid } from '@/shared/lib/forms'
@@ -7,7 +8,7 @@ import { Button } from '@/shared/ui/Button'
 import { FormError } from '@/shared/ui/FormError'
 import { TextField } from '@/shared/ui/TextField'
 import { ticketSummary } from '../rules'
-import { checkoutSchema, type CheckoutValues } from '../schemas'
+import { checkoutSchema, formatCardNumber, formatExpiry, type CheckoutValues } from '../schemas'
 import { BookingColumns } from './BookingColumns'
 import { StepPills } from './StepPills'
 import { SubtotalBar } from './SubtotalBar'
@@ -60,14 +61,26 @@ export function CheckoutStep({
     }
   })
 
-  const field = (name: keyof CheckoutValues) => {
+  /** `format` rewrites what was typed before the form sees it (digit limits, spacing, the slash). */
+  const field = (
+    name: keyof CheckoutValues,
+    format?: (value: string, event: ChangeEvent<HTMLInputElement>) => string,
+  ) => {
     const isPrefilled = name in prefilled && prefilled[name as keyof typeof prefilled] !== ''
+    const registered = register(name)
     return {
       error: errors[name]?.message,
       valid: !errors[name] && (touchedFields[name] || isPrefilled),
-      ...register(name),
+      ...registered,
+      onChange: (event: ChangeEvent<HTMLInputElement>) => {
+        if (format) event.target.value = format(event.target.value, event)
+        return registered.onChange(event)
+      },
     }
   }
+
+  const isDeleting = (event: ChangeEvent<HTMLInputElement>) =>
+    (event.nativeEvent as InputEvent).inputType?.startsWith('delete') ?? false
 
   return (
     <BookingColumns
@@ -109,18 +122,17 @@ export function CheckoutStep({
                 label="Card number"
                 inputMode="numeric"
                 autoComplete="cc-number"
-                maxLength={19}
                 placeholder="e.g. 1234 4567 8901 2345"
-                {...field('cardNumber')}
+                {...field('cardNumber', formatCardNumber)}
               />
               <div className="grid grid-cols-2 gap-3">
                 <TextField
                   className="min-h-17.25"
                   label="Expiry"
+                  inputMode="numeric"
                   autoComplete="cc-exp"
-                  maxLength={5}
                   placeholder="e.g. 12/34"
-                  {...field('expiry')}
+                  {...field('expiry', (value, event) => formatExpiry(value, isDeleting(event)))}
                 />
                 <TextField
                   className="min-h-17.25"
