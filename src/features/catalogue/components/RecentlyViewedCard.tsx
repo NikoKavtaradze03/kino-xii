@@ -8,7 +8,7 @@ export function RecentlyViewedCard({ movie }: { movie: Movie }) {
   return (
     <Link
       to={moviePath(movie)}
-      className="flex h-21.75 w-82.25 shrink-0 items-center gap-3 rounded-2xl bg-card p-2.5 ring-raised transition-shadow ring-inset hover:shadow-[0_4px_24px_var(--color-shadow)] hover:ring-1"
+      className="flex h-21.75 w-82.25 shrink-0 items-center gap-3 rounded-2xl bg-card p-2.5 transition-shadow duration-300 ease-out hover:shadow-[0_4px_24px_var(--color-shadow)]"
     >
       <MovieImage src={movie.posterUrl} className="h-16.75 w-21.75 shrink-0 rounded-lg" />
       <div className="flex min-w-0 flex-col gap-1">

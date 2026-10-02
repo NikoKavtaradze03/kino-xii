@@ -19,7 +19,7 @@ export function NotifyButton({ movie, className }: NotifyButtonProps) {
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-1 rounded-full bg-tint-white px-3 py-1.5 text-label-s',
+          'inline-flex items-center gap-1 rounded-full bg-tint-white px-3 py-1.5 text-label-s transition-opacity duration-300 ease-out starting:opacity-0',
           className,
         )}
       >
