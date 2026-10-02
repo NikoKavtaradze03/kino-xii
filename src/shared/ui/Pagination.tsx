@@ -8,18 +8,17 @@ type PaginationProps = {
   className?: string
 }
 
-/** The first and last pages and the current one with its neighbours; "..." marks skipped pages. */
-function pageItems(page: number, pageCount: number) {
-  const pages = [...new Set([1, page - 1, page, page + 1, pageCount])]
-    .filter((p) => p >= 1 && p <= pageCount)
-    .sort((a, b) => a - b)
+const MAX_SLOTS = 5
 
-  return pages.flatMap((p, i): (number | 'gap')[] => {
-    const previous = pages[i - 1]
-    if (i === 0 || p - previous === 1) return [p]
-    // A gap of exactly one page shows that page instead of "...".
-    return p - previous === 2 ? [previous + 1, p] : ['gap', p]
-  })
+/**
+ * Always five slots, as in Figma (page 3 of 10 shows "1 2 3 ... 10"), so the pager keeps its width:
+ * near the start "1 2 3 ... n", near the end "1 ... n-2 n-1 n", otherwise "1 ... p ... n".
+ */
+function pageItems(page: number, pageCount: number): (number | 'gap')[] {
+  if (pageCount <= MAX_SLOTS) return Array.from({ length: pageCount }, (_, i) => i + 1)
+  if (page <= 3) return [1, 2, 3, 'gap', pageCount]
+  if (page >= pageCount - 2) return [1, 'gap', pageCount - 2, pageCount - 1, pageCount]
+  return [1, 'gap', page, 'gap', pageCount]
 }
 
 const cellClasses =
