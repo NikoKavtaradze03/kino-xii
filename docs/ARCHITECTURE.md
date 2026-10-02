@@ -227,6 +227,27 @@ serialise functions live in `features/sessions/filters.ts`.
 - Sold-out sessions stay visible but disabled ("Sold out", 40 % opacity); 5 or fewer seats left are red.
 - Choosing a session asks a guest to log in first, then opens the booking modal through `?booking=<id>`.
 
+## Movie details page
+
+`/movies/:slug` (`MovieDetails` in `features/catalogue`): a banner (blurred backdrop, poster, title,
+synopsis, badges), the sessions section on the left and a Details panel on the right.
+
+- `GET /movies/{slug}` loads the film; a 404 shows "Film not found". Opening the page adds the film to
+  Recently viewed.
+- The day picker shows the same 7 days as the sessions page. Days not in the film's `availableDates`
+  are disabled; the first available day is selected on load. The selected day widens, as in Figma.
+- All 7 days' sessions (`GET /movies/{slug}/sessions?date=`) load in parallel with `useQueries`, so
+  "N sessions over the next seven days" is exact and switching days is instant. Days without
+  sessions are not requested.
+- The API groups sessions by venue; the page also groups each venue's sessions by hall, as in Figma.
+  Session tiles are ticket-shaped (notches and a dashed perforation) and show a short language code
+  (`languageCode` in `catalogue/lib.ts`), because Figma has room for "ENG" only.
+- **Age gate:** a signed-in user younger than `ageRating.minAge` sees "This film is rated 16+. You
+  cannot buy tickets for it with this account." above the venues, and every tile is disabled. Guests
+  can still choose a session; the booking flow checks their age after they log in.
+- The Details panel follows Figma (director, main cast, duration, release date, formats, from price,
+  and the rating note with the rating's description) plus a Genre row, which the brief requires.
+
 ## Booking flow
 
 The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with explicit states:
