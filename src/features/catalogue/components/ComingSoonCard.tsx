@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import type { Movie } from '@/shared/api/types'
-import { formatReleaseDate } from '@/shared/lib/format'
+import { formatDate } from '@/shared/lib/format'
 import { genreAndRuntime, moviePath } from '../lib'
 import { AgeBadge } from './AgeBadge'
 import { MovieImage } from './MovieImage'
@@ -18,7 +18,7 @@ export function ComingSoonCard({ movie }: { movie: Movie }) {
       <div className="flex h-33 min-w-0 flex-col justify-between">
         <div className="flex flex-col gap-1.75">
           <p className="text-label-s text-red uppercase">
-            In cinemas {formatReleaseDate(movie.releaseDate)}
+            In cinemas {formatDate(movie.releaseDate)}
           </p>
           <div className="flex flex-col gap-1.75">
             <h3 className="truncate text-label-s">

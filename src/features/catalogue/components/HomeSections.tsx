@@ -1,6 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { useCurrentUser } from '@/features/auth/hooks'
 import type { Movie } from '@/shared/api/types'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorState } from '@/shared/ui/ErrorState'
@@ -87,9 +88,11 @@ export function ComingSoonSection() {
   )
 }
 
+/** Figma draws this row only on the signed-in home page. */
 export function RecentlyViewedSection() {
+  const { user } = useCurrentUser()
   const movies = useRecentlyViewed()
-  if (!movies.length) return null
+  if (!user || !movies.length) return null
 
   return (
     <MovieSection title="Recently viewed" compact rowClassName="gap-5">
