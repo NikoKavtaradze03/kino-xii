@@ -189,3 +189,8 @@ export type SessionsPage = {
     date: string
   }
 }
+
+export type VenueSessions = {
+  venue: Venue
+  sessions: Session[]
+}
