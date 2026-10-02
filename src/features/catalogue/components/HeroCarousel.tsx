@@ -29,8 +29,18 @@ function HeroSlide({ movie, synopsis, synopsisLoading, active }: HeroSlideProps)
         active ? 'opacity-100' : 'opacity-0',
       )}
     >
-      <MovieImage src={movie.backdropUrl ?? movie.posterUrl} className="size-full" />
-      <div className="absolute inset-0 bg-linear-to-r from-black to-black/10" />
+      {/* Slow zoom while the slide is shown (`starting:` makes the first one zoom from the start
+          too); it resets only after the 300ms fade-out. Framed ~30% from the top, as Figma crops it. */}
+      <MovieImage
+        src={movie.backdropUrl ?? movie.posterUrl}
+        className={cn(
+          'size-full object-[50%_30%] transition-transform ease-linear motion-reduce:transition-none',
+          active
+            ? 'scale-110 duration-[7000ms] motion-reduce:scale-100 starting:scale-100'
+            : 'scale-100 delay-300 duration-0',
+        )}
+      />
+      <div className="absolute inset-0 bg-linear-to-r from-black/80 to-black/8" />
 
       <div className="absolute top-81.25 left-16.75 flex w-145 flex-col gap-3.75">
         <div>
@@ -43,14 +53,18 @@ function HeroSlide({ movie, synopsis, synopsisLoading, active }: HeroSlideProps)
           <div className="flex flex-col gap-3.75">
             <h2 className="text-display uppercase">{movie.title}</h2>
             <div className="flex flex-wrap gap-2">
-              <AgeBadge rating={movie.ageRating} size="md" />
-              <Badge icon="timer">{movie.runtimeMinutes} Min</Badge>
+              <AgeBadge rating={movie.ageRating} size="lg" />
+              <Badge size="lg" icon="timer">
+                {movie.runtimeMinutes} Min
+              </Badge>
               {movie.formats.map((format) => (
-                <Badge key={format.id}>{format.name}</Badge>
+                <Badge key={format.id} size="lg">
+                  {format.name}
+                </Badge>
               ))}
             </div>
             {synopsis ? (
-              <p className="line-clamp-3 w-140 text-body-m">{synopsis}</p>
+              <p className="w-140 text-body-m">{synopsis}</p>
             ) : (
               synopsisLoading && <Skeleton className="h-13.5 w-140" />
             )}
@@ -71,11 +85,12 @@ function HeroSlide({ movie, synopsis, synopsisLoading, active }: HeroSlideProps)
 }
 
 const roundButtonClasses =
-  'grid size-13.5 cursor-pointer place-items-center rounded-full bg-page/20 transition-colors hover:bg-page/50'
+  'grid size-13.5 cursor-pointer place-items-center rounded-full bg-page/20 transition-[background-color,box-shadow] duration-300 ease-out hover:bg-page hover:shadow-[0_2px_8px_var(--color-shadow)]'
 
 /**
  * Featured films crossfade every 6 s. The red progress bar's CSS animation is the timer: it pauses
- * while the pointer or keyboard focus is inside the hero, and is off for users who prefer reduced motion.
+ * while keyboard focus is inside the hero (so it can be read and operated), and is off for users who
+ * prefer reduced motion.
  */
 function HeroCarousel({ movies }: { movies: Movie[] }) {
   const [active, setActive] = useState(0)
@@ -115,7 +130,7 @@ function HeroCarousel({ movies }: { movies: Movie[] }) {
                 {index === active && (
                   <span
                     onAnimationEnd={() => show(active + 1)}
-                    className="absolute inset-0 origin-left animate-progress rounded-full bg-red group-hover/hero:[animation-play-state:paused] group-has-focus-visible/hero:[animation-play-state:paused] motion-reduce:animate-none"
+                    className="absolute inset-0 origin-left animate-progress rounded-full bg-red group-has-focus-visible/hero:[animation-play-state:paused] motion-reduce:animate-none"
                   />
                 )}
               </span>
