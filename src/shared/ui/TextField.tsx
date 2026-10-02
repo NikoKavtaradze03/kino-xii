@@ -42,7 +42,7 @@ export function TextField({
         </label>
         <div
           className={cn(
-            'flex h-10 items-center gap-1.5 rounded-xl border bg-card px-4 transition-colors',
+            'flex h-10 items-center gap-1.5 rounded-xl border bg-card px-3.75 transition-colors',
             error
               ? 'border-red'
               : 'border-transparent focus-within:border-disabled focus-within:bg-card not-has-disabled:hover:border-disabled not-has-disabled:hover:bg-raised',

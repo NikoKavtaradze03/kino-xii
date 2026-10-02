@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useFilterOptions } from '@/shared/api/filterOptions'
 import type { User } from '@/shared/api/types'
+import { cn } from '@/shared/lib/cn'
 import { applyServerErrors, useSchemaValid } from '@/shared/lib/forms'
 import { Button } from '@/shared/ui/Button'
 import { FormError } from '@/shared/ui/FormError'
@@ -28,6 +29,8 @@ export function ProfileForm({ user }: { user: User }) {
     defaultValues: profileValues(user),
   })
   const isValid = useSchemaValid(control, profileSchema)
+  // A native date input has no placeholder styling; its empty "mm/dd/yyyy" is greyed like one.
+  const dateOfBirth = useWatch({ control, name: 'dateOfBirth' })
   const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'))
 
   const onSubmit = handleSubmit(async ({ preferredVenueId, ...values }) => {
@@ -88,7 +91,10 @@ export function ProfileForm({ user }: { user: User }) {
             icon="calendar"
             // Opens the browser's date picker from anywhere in the field, not only its own icon.
             onClick={(event) => event.currentTarget.showPicker?.()}
-            className="[&_input]:scheme-dark [&_input::-webkit-calendar-picker-indicator]:hidden"
+            className={cn(
+              '[&_input]:scheme-dark [&_input::-webkit-calendar-picker-indicator]:hidden',
+              !dateOfBirth && !errors.dateOfBirth && '[&_input]:text-secondary',
+            )}
             error={errors.dateOfBirth?.message}
             valid={isValidField('dateOfBirth')}
             {...register('dateOfBirth')}

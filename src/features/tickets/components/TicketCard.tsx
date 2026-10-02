@@ -110,7 +110,7 @@ export function TicketCard({ order }: { order: Order }) {
           >
             Refund
           </Button>
-          <p className="text-body-s text-secondary">{refundNote(order)}</p>
+          <p className="text-center text-body-s text-secondary">{refundNote(order)}</p>
         </div>
       </div>
 

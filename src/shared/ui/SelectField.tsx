@@ -46,7 +46,7 @@ export function SelectField({
         <Select.Trigger
           id={id}
           className={cn(
-            'group flex h-10 cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-transparent bg-card px-4 text-label-s text-primary transition-colors outline-none',
+            'group flex h-10 cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-transparent bg-card px-3.75 text-label-s text-primary transition-colors outline-none',
             'hover:border-disabled hover:bg-raised focus-visible:border-disabled data-placeholder:text-secondary',
           )}
         >
