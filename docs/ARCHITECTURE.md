@@ -173,14 +173,16 @@ Four sections, each a component in `features/catalogue/components` that owns its
 - **Recently viewed**: no endpoint, so `recentlyViewed.ts` keeps up to 10 films in `localStorage`
   (newest first, no duplicates) and exposes them through `useSyncExternalStore`. The movie details page
   adds to it. The section is hidden while the list is empty.
-- **Now playing** (`GET /movies/now-playing?limit=10`): cards grow on hover or focus to show the
-  backdrop and synopsis (fetched at that moment). "See all" goes to the sessions page.
+- **Now playing** (`GET /movies/now-playing?limit=10`): cards widen on hover or focus as in the
+  Figma prototype: the poster is cropped to the wider box and the synopsis (fetched at that moment)
+  fades in at its final position; text sizes and the price row never move. "See all" goes to the
+  sessions page.
 - **Coming soon** (`GET /movies/coming-soon`): "See all" wraps the row instead of scrolling it.
   Notify Me runs through `useRequireAuth` (logs in first if needed) and then
   `POST /movies/{slug}/notify`; after success the movie lists are invalidated and the button shows
   "Reminder set" because the server now returns `isNotified: true`. There is no unsubscribe endpoint.
-- Rows scroll horizontally and fade out at the right edge. The thin scrollbar is always reserved
-  (`overflow-x-scroll`), so a row has the same height whether it overflows or not.
+- Rows scroll horizontally inside the 70px page margins (clipped there, as in Figma) and fade out
+  at their right end. The thin scrollbar is always reserved (`overflow-x-scroll`), so a row has the same height whether it overflows or not.
 - Cards that contain another control (Coming soon: Notify Me) use a stretched title link
   (`after:absolute after:inset-0`) instead of wrapping the card in a link, since interactive elements
   must not be nested.
