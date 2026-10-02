@@ -177,11 +177,12 @@ Four sections, each a component in `features/catalogue/components` that owns its
   Figma prototype: the poster is cropped to the wider box and the synopsis (fetched at that moment)
   fades in at its final position; text sizes and the price row never move. "See all" goes to the
   sessions page.
-- **Coming soon** (`GET /movies/coming-soon`): "See all" wraps the row instead of scrolling it.
+- **Coming soon** (`GET /movies/coming-soon`): "See all" goes to the sessions page, as in Figma.
   Notify Me runs through `useRequireAuth` (logs in first if needed) and then
   `POST /movies/{slug}/notify`; after success the movie lists are invalidated and the button shows
   "Reminder set" because the server now returns `isNotified: true`. There is no unsubscribe endpoint.
-- Rows scroll horizontally inside the 70px page margins (clipped there, as in Figma) and fade out
+- Rows scroll horizontally inside the 70px page margins (clipped there, as in Figma; Now Playing also
+  has Figma's faint inner edge shadow) and fade out
   at their right end. The thin scrollbar is always reserved (`overflow-x-scroll`), so a row has the same height whether it overflows or not.
 - Cards that contain another control (Coming soon: Notify Me) use a stretched title link
   (`after:absolute after:inset-0`) instead of wrapping the card in a link, since interactive elements
@@ -241,9 +242,13 @@ The booking modal is driven by a reducer (`booking/bookingReducer.ts`) with expl
   `[..px]` values; use arbitrary values only off the scale (e.g. `rounded-[28px]`).
 - `cn(...)` joins class names and drops falsy values. There is no class-merging library, so components
   avoid receiving utilities that conflict with their own.
-- `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint), `outline`
-  (Notify); sizes `md` / `sm`; `loading` shows a spinner and disables it. `ButtonLink` has the same look
+- `Button` variants follow Figma: `primary` (red), `secondary` (white), `transparent` (tint, blurred
+  only on hover), `outline` (Notify; an inset ring so it keeps Figma's size); colour changes fade over
+  300 ms; sizes `md` / `sm`; `loading` shows a spinner and disables it. `ButtonLink` has the same look
   as a router link.
+- **Scope rule:** build what the Figma screens and the brief show, nothing more. The Figma prototype's
+  wiring tells us which states exist and where links go; its timings are a guide (300 ms is used for
+  hover fades), and its navigation fades are not reproduced.
 - Reusable visual components live in `shared/ui`; features compose them rather than restyling raw elements.
 
 ## Conventions
