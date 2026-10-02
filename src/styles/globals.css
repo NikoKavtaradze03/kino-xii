@@ -91,3 +91,12 @@
     @apply bg-page font-sans text-body-m text-primary antialiased;
   }
 }
+
+/* Figma's diagonal stripes on seats someone else is holding. */
+@utility bg-hatched {
+  background-image: repeating-linear-gradient(
+    142deg,
+    rgb(217 217 217 / 0.1) 0 9.3px,
+    transparent 9.3px 18.6px
+  );
+}
