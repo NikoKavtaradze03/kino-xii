@@ -223,7 +223,6 @@ serialise functions live in `features/sessions/filters.ts`.
   there (a negative `top` computed from its measured height), so every filter stays reachable.
 - The date pills keep Figma's 37px width, so the row scrolls like the Home rows; the selected day is
   scrolled into view.
-
 - Each film's sessions are one row, clipped at the list edge as in Figma; extra sessions scroll sideways.
 - Sold-out sessions stay visible but disabled ("Sold out", 40 % opacity); 5 or fewer seats left are red.
 - Choosing a session asks a guest to log in first, then opens the booking modal through `?booking=<id>`.
