@@ -172,3 +172,20 @@ export type Order = {
   session: Session
   tickets: (TicketLine & { id: number })[]
 }
+
+export type SessionGroup = {
+  movie: Movie
+  sessions: Session[]
+}
+
+export type SessionsPage = {
+  data: SessionGroup[]
+  meta: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    totalSessions: number
+    totalMovies: number
+    date: string
+  }
+}
