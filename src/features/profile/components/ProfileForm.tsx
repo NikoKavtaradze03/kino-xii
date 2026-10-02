@@ -89,8 +89,6 @@ export function ProfileForm({ user }: { user: User }) {
             autoComplete="bday"
             max={today}
             icon="calendar"
-            // Opens the browser's date picker from anywhere in the field, not only its own icon.
-            onClick={(event) => event.currentTarget.showPicker?.()}
             className={cn(
               '[&_input]:scheme-dark [&_input::-webkit-calendar-picker-indicator]:hidden',
               !dateOfBirth && !errors.dateOfBirth && '[&_input]:text-secondary',
