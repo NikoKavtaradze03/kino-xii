@@ -216,7 +216,13 @@ serialise functions live in `features/sessions/filters.ts`.
 - Filters are part of the query key, so a new URL refetches (skeletons while loading), and
   back/forward, refresh and shared links all restore the same view.
 
-### List
+### Layout and list
+
+- The sidebar is sticky. When it is taller than the window (1006px vs ~940px on a 1080p screen with
+  browser chrome), it scrolls with the page until its bottom is 24px above the window bottom and sticks
+  there (a negative `top` computed from its measured height), so every filter stays reachable.
+- The date pills keep Figma's 37px width, so the row scrolls like the Home rows; the selected day is
+  scrolled into view.
 
 - Each film's sessions are one row, clipped at the list edge as in Figma; extra sessions scroll sideways.
 - Sold-out sessions stay visible but disabled ("Sold out", 40 % opacity); 5 or fewer seats left are red.
