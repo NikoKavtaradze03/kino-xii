@@ -172,7 +172,8 @@ Four sections, each a component in `features/catalogue/components` that owns its
   film's `GET /movies/{slug}` is fetched too; the details page later reuses that cache entry.
 - **Recently viewed**: no endpoint, so `recentlyViewed.ts` keeps up to 10 films in `localStorage`
   (newest first, no duplicates) and exposes them through `useSyncExternalStore`. The movie details page
-  adds to it. The section is hidden while the list is empty.
+  adds to it. As in Figma, the section is shown only to signed-in users, and hidden while the list is
+  empty.
 - **Now playing** (`GET /movies/now-playing?limit=10`): cards widen on hover or focus as in the
   Figma prototype: the poster is cropped to the wider box and the synopsis (fetched at that moment)
   fades in at its final position; text sizes and the price row never move. "See all" goes to the
@@ -183,7 +184,8 @@ Four sections, each a component in `features/catalogue/components` that owns its
   "Reminder set" because the server now returns `isNotified: true`. There is no unsubscribe endpoint.
 - Rows scroll horizontally inside the 70px page margins (clipped there, as in Figma; Now Playing also
   has Figma's faint inner edge shadow) and fade out
-  at their right end. The thin scrollbar is always reserved (`overflow-x-scroll`), so a row has the same height whether it overflows or not.
+  at their right end. As in Figma there is no visible scrollbar; rows scroll with a trackpad,
+  Shift + wheel or keyboard focus.
 - Cards that contain another control (Coming soon: Notify Me) use a stretched title link
   (`after:absolute after:inset-0`) instead of wrapping the card in a link, since interactive elements
   must not be nested.
