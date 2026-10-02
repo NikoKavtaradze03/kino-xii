@@ -114,6 +114,20 @@ function ResultRow({
   )
 }
 
+/** A result row's poster, title, meta line and price in grey. */
+function ResultRowSkeleton() {
+  return (
+    <div className="flex h-18 items-center gap-3.5 py-2 pr-5 pl-2.5">
+      <Skeleton className="h-14 w-10 shrink-0 rounded-md" />
+      <div className="flex flex-1 flex-col gap-2">
+        <Skeleton className="h-3 w-44 rounded" />
+        <Skeleton className="h-2.5 w-28 rounded" />
+      </div>
+      <Skeleton className="h-3 w-14 rounded" />
+    </div>
+  )
+}
+
 export function SearchPanel({
   query,
   resultsQuery,
@@ -140,7 +154,7 @@ export function SearchPanel({
     content = (
       <div aria-busy className="flex flex-col gap-0.5 pt-7.5">
         {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-18 rounded-[10px]" />
+          <ResultRowSkeleton key={i} />
         ))}
       </div>
     )

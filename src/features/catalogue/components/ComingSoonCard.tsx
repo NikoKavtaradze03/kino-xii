@@ -9,7 +9,7 @@ import { NotifyButton } from './NotifyButton'
 export function ComingSoonCard({ movie }: { movie: Movie }) {
   return (
     // The title link is stretched over the card (after:inset-0); the Notify button sits above it.
-    <article className="relative flex h-40 w-117.5 shrink-0 items-center gap-3.75 rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-raised transition-shadow duration-300 ease-out ring-inset hover:shadow-[0_4px_24px_var(--color-shadow)] hover:ring-1">
+    <article className="relative flex h-40 w-117.5 shrink-0 items-center gap-3.75 rounded-[20px] bg-card p-3 shadow-[0_1px_4px_var(--color-shadow)] ring-1 ring-transparent transition-shadow duration-300 ease-out ring-inset hover:shadow-[0_4px_24px_var(--color-shadow)] hover:ring-raised">
       <MovieImage
         src={movie.backdropUrl ?? movie.posterUrl}
         className="h-34 w-57.25 shrink-0 rounded-[14px]"
