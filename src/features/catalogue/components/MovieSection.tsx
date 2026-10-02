@@ -36,14 +36,9 @@ export function MovieSection({
           <div className="pointer-events-none absolute inset-0 -z-10 shadow-[inset_0_0_4px_var(--color-shadow)]" />
         )}
         {/* Vertical padding keeps hover shadows from being clipped by the scroll container; the
-            negative margin cancels it. The thin scrollbar (10px) is always reserved, so a row is
-            equally tall whether or not it overflows. */}
-        <div
-          className={cn(
-            '-my-6 flex [scrollbar-width:thin] [scrollbar-color:var(--color-raised)_transparent] overflow-x-scroll pt-6 pb-3.5',
-            rowClassName,
-          )}
-        >
+            negative margin cancels it. The scrollbar is hidden, as in Figma (rows still scroll with
+            a trackpad, Shift + wheel, or keyboard focus). */}
+        <div className={cn('-my-6 flex [scrollbar-width:none] overflow-x-auto py-6', rowClassName)}>
           {children}
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 w-45 bg-linear-to-l from-page" />
