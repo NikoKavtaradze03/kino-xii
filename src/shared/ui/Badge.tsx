@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { Icon, type IconName } from './Icon'
 
-type Size = 'lg' | 'md' | 'sm' | 'xs'
+type Size = 'lg' | 'md' | 'sm' | 'xs' | '2xs'
 
 // `md` is Figma's base Badge; the others are the paddings its screens override it with.
 const sizeClasses: Record<Size, string> = {
@@ -10,6 +10,7 @@ const sizeClasses: Record<Size, string> = {
   md: 'px-2.5 py-1.5',
   sm: 'px-2 py-1',
   xs: 'px-1.75 py-1',
+  '2xs': 'px-2 py-0.75',
 }
 
 type BadgeProps = {

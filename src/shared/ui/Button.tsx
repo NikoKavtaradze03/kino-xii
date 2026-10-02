@@ -5,7 +5,7 @@ import { Icon, type IconName } from './Icon'
 import { Spinner } from './Spinner'
 
 type Variant = 'primary' | 'secondary' | 'transparent' | 'outline'
-type Size = 'md' | 'sm'
+type Size = 'md' | 'compact' | 'sm'
 
 type StyleProps = {
   variant?: Variant
@@ -23,6 +23,7 @@ const variantClasses: Record<Variant, string> = {
 
 const sizeClasses: Record<Size, string> = {
   md: 'px-5.5 py-3.25 text-button',
+  compact: 'px-5.5 py-2.5 text-button',
   sm: 'px-3 py-1.5 text-label-s',
 }
 
