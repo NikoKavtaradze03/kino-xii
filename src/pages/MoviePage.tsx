@@ -1,11 +1,8 @@
 import { useParams } from 'react-router'
+import { MovieDetails } from '@/features/catalogue/components/MovieDetails'
 
 export function MoviePage() {
-  const { slug } = useParams()
-
-  return (
-    <section className="px-gutter pt-header">
-      <h1 className="text-h1">{slug}</h1>
-    </section>
-  )
+  const { slug = '' } = useParams()
+  // The key starts a fresh page (selected day, scroll) when moving from one film to another.
+  return <MovieDetails key={slug} slug={slug} />
 }
