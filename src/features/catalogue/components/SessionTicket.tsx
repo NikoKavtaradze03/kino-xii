@@ -1,4 +1,5 @@
 import type { Session } from '@/shared/api/types'
+import { hasSessionStarted, useCinemaNow } from '@/shared/lib/cinemaClock'
 import { formatPrice } from '@/shared/lib/format'
 import { Icon } from '@/shared/ui/Icon'
 import { languageCode } from '../lib'
@@ -15,10 +16,13 @@ type SessionTicketProps = {
  * instead and every tile keeps Figma's size.
  */
 export function SessionTicket({ session, disabled, onSelect }: SessionTicketProps) {
+  const started = hasSessionStarted(session, useCinemaNow())
+  const closed = started ? 'Started' : session.isSoldOut ? 'Sold out' : null
+
   return (
     <button
       type="button"
-      disabled={disabled || session.isSoldOut}
+      disabled={disabled || closed !== null}
       onClick={() => onSelect(session)}
       className="flex h-20.25 w-51.75 shrink-0 cursor-pointer rounded-xl bg-page shadow-[0_1px_2px_var(--color-shadow)] disabled:cursor-not-allowed disabled:opacity-40"
     >
@@ -36,8 +40,8 @@ export function SessionTicket({ session, disabled, onSelect }: SessionTicketProp
         <span className="absolute top-2.75 left-[-0.75px] h-14.75 w-[1.5px] bg-[repeating-linear-gradient(to_bottom,var(--color-primary)_0_3px,transparent_3px_7px)]" />
 
         <span className="text-h3 text-red">{formatPrice(session.price)}</span>
-        {session.isSoldOut ? (
-          <span className="text-body-s text-secondary">Sold out</span>
+        {closed ? (
+          <span className="text-body-s text-secondary">{closed}</span>
         ) : (
           <span className="flex items-center gap-1 text-body-s text-secondary">
             <Icon name="ticket" className="size-3" />

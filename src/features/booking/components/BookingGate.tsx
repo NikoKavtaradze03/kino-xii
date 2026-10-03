@@ -4,6 +4,7 @@ import { requestLogin, useCurrentUser } from '@/features/auth/hooks'
 import { isApiError } from '@/shared/api/errors'
 import { useFilterOptions } from '@/shared/api/filterOptions'
 import type { FilterOptions, SeatHold, SeatMap, Session, User } from '@/shared/api/types'
+import { hasSessionStarted, useCinemaNow } from '@/shared/lib/cinemaClock'
 import { ButtonLink } from '@/shared/ui/Button'
 import { ErrorState } from '@/shared/ui/ErrorState'
 import { ModalClose, ModalFrame } from '@/shared/ui/Modal'
@@ -150,6 +151,8 @@ function BookingSteps({
   const holdSeats = useHoldSeats(session.id)
   const releaseHold = useReleaseHold(session.id)
   const createOrder = useCreateOrder()
+  // Reached by a direct link, or left open past the start time; a hold already made can still be paid.
+  const started = hasSessionStarted(session, useCinemaNow())
 
   useHoldExpiry(state.step === 'confirmed' ? undefined : state.hold?.expiresAt, () => {
     holdStorage.clear(session.id)
@@ -212,7 +215,11 @@ function BookingSteps({
 
   const { minAge, code } = session.movie.ageRating
   let blocker: ReactNode = null
-  if (!user.profileComplete) {
+  if (started) {
+    blocker = (
+      <p className="text-label-m">This session has already started. Choose a later showtime.</p>
+    )
+  } else if (!user.profileComplete) {
     blocker = (
       <>
         <p className="text-label-m">Please complete your profile to enable booking.</p>

@@ -25,7 +25,7 @@ type SeatsStepProps = {
   maxSeats: number
   state: BookingState
   dispatch: Dispatch<BookingAction>
-  /** Why this account cannot book at all (incomplete profile, age rating), shown above the seats. */
+  /** Why booking is closed (session started, incomplete profile, age rating), shown above the seats. */
   blocker: ReactNode
   /** Play the seat map's entrance ripple (only when the modal first shows the map). */
   ripple: boolean
