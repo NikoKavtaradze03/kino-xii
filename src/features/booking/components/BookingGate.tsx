@@ -88,7 +88,8 @@ function BookingFlow({ sessionId, user, onClose }: BookingFlowProps) {
   const storedHold = useStoredHold(sessionId)
   const options = useFilterOptions()
 
-  const failed = [session, seatMap, options].find((query) => query.error)
+  // A stored hold that could not be fetched may still be live, so it is an error, not "no hold".
+  const failed = [session, seatMap, options, storedHold].find((query) => query.error)
   if (failed?.error) {
     return (
       <BookingError onClose={onClose}>
