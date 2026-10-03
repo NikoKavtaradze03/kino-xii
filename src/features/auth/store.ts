@@ -40,6 +40,15 @@ export const useAuthStore = create<AuthState>()((set) => ({
 }))
 
 /**
+ * Call before a request; the returned check tells afterwards whether the session that sent it is
+ * still the current one (nobody signed in or out meanwhile).
+ */
+export function trackSession() {
+  const { token } = useAuthStore.getState()
+  return () => useAuthStore.getState().token === token
+}
+
+/**
  * Opens the login modal and resolves once the user signs in (true) or dismisses it (false).
  * Concurrent callers share the same modal; an already open register modal is left as is.
  */
