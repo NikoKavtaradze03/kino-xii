@@ -11,15 +11,17 @@ import { setUnauthorizedHandler } from '@/shared/api/client'
 import { isApiError } from '@/shared/api/errors'
 import type { User } from '@/shared/api/types'
 import { authKeys, fetchMe, login, logout, register } from './api'
-import { requestLogin, useAuthStore } from './store'
+import { requestLogin, trackSession, useAuthStore } from './store'
 
 export { requestLogin }
 
 async function fetchMeOrSignOut() {
+  const isCurrentSession = trackSession()
   try {
     return await fetchMe()
   } catch (error) {
-    if (isApiError(error) && error.kind === 'unauthorized') {
+    // A 401 for an older token must not sign out a login that finished while it was on its way.
+    if (isApiError(error) && error.kind === 'unauthorized' && isCurrentSession()) {
       useAuthStore.getState().setToken(null)
       return null
     }

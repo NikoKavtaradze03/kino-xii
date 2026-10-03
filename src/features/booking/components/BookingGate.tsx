@@ -50,6 +50,11 @@ function BookingError({ onClose, children }: { onClose: () => void; children: Re
 /** A guest (e.g. from a shared link) logs in first. */
 export function BookingGate({ sessionId, onClose }: { sessionId: number; onClose: () => void }) {
   const { status, user, retry, isRetrying } = useCurrentUser()
+  // A 401 in the middle of booking signs the user out until they log in again. The flow stays
+  // mounted behind the login modal, so the replayed request still has a flow to return to.
+  const [lastUser, setLastUser] = useState(user)
+  if (user && user !== lastUser) setLastUser(user)
+  const flowUser = user ?? lastUser
   const closeIfDeclined = useEffectEvent((signedIn: boolean) => {
     if (!signedIn) onClose()
   })
@@ -58,8 +63,11 @@ export function BookingGate({ sessionId, onClose }: { sessionId: number; onClose
     if (status === 'guest') void requestLogin().then(closeIfDeclined)
   }, [status])
 
+  // Keyed by user: a different account logging in starts a new flow.
+  if (flowUser) {
+    return <BookingFlow key={flowUser.id} sessionId={sessionId} user={flowUser} onClose={onClose} />
+  }
   if (status === 'guest') return null
-  if (user) return <BookingFlow sessionId={sessionId} user={user} onClose={onClose} />
 
   if (status === 'error') {
     return (
@@ -87,8 +95,17 @@ function BookingFlow({ sessionId, user, onClose }: BookingFlowProps) {
   const seatMap = useSeatMap(sessionId)
   const storedHold = useStoredHold(sessionId)
   const options = useFilterOptions()
+  // Decided once: the hold query runs again after a new login, which must not restart the flow.
+  const [initialHold, setInitialHold] = useState<SeatHold | null>()
+  const restoring = initialHold === undefined
+  if (restoring && !storedHold.isLoading && !storedHold.error) {
+    setInitialHold(storedHold.data ?? null)
+  }
 
-  const failed = [session, seatMap, options].find((query) => query.error)
+  // A stored hold that could not be fetched may still be live, so it is an error, not "no hold".
+  const failed = [session, seatMap, options, ...(restoring ? [storedHold] : [])].find(
+    (query) => query.error,
+  )
   if (failed?.error) {
     return (
       <BookingError onClose={onClose}>
@@ -101,7 +118,7 @@ function BookingFlow({ sessionId, user, onClose }: BookingFlowProps) {
     )
   }
 
-  if (!session.data || !seatMap.data || !options.data || storedHold.isLoading) {
+  if (!session.data || !seatMap.data || !options.data || restoring) {
     return (
       <BookingFrame onClose={onClose}>
         <BookingSkeleton />
@@ -115,7 +132,7 @@ function BookingFlow({ sessionId, user, onClose }: BookingFlowProps) {
       seatMap={seatMap.data}
       options={options.data}
       user={user}
-      initialHold={storedHold.data ?? null}
+      initialHold={initialHold}
       refetchSeats={() => void seatMap.refetch()}
       onClose={onClose}
     />
@@ -166,7 +183,10 @@ function BookingSteps({
   }
 
   const close = () => {
-    if (state.hold && state.step !== 'confirmed') releaseHold.mutate(state.hold.holdId)
+    // While a payment is on its way the hold belongs to it: releasing it would race the order.
+    if (state.hold && state.step !== 'confirmed' && !createOrder.isPending) {
+      releaseHold.mutate(state.hold.holdId)
+    }
     onClose()
   }
 
