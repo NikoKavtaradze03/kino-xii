@@ -5,7 +5,7 @@ export const ticketKeys = {
   all: ['me', 'tickets'] as const,
 }
 
-/** Both tabs in one request; `isUpcoming` (computed by the server) decides each order's tab. */
+/** Both tabs in one request; `useMyTickets` splits the orders into Upcoming and Past. */
 export async function fetchTickets() {
   const { data } = await apiClient.get<ApiResponse<Order[]>>('/tickets')
   return data.data
