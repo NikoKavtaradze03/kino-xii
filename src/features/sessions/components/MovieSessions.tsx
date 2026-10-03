@@ -1,5 +1,7 @@
+import { Link } from 'react-router'
 import { AgeBadge } from '@/features/catalogue/components/AgeBadge'
 import { MovieImage } from '@/features/catalogue/components/MovieImage'
+import { moviePath } from '@/features/catalogue/lib'
 import type { Session, SessionGroup } from '@/shared/api/types'
 import { SessionCard } from './SessionCard'
 
@@ -12,10 +14,15 @@ export function MovieSessions({ group: { movie, sessions }, onSelect }: MovieSes
   return (
     <section aria-label={movie.title} className="flex flex-col gap-3.5">
       <div className="flex items-center gap-4">
-        <MovieImage src={movie.posterUrl} className="h-20 w-14 shrink-0 rounded-lg" />
+        {/* The title is the real link; the poster repeats it for mouse users only. */}
+        <Link to={moviePath(movie)} tabIndex={-1} aria-hidden className="shrink-0">
+          <MovieImage src={movie.posterUrl} className="h-20 w-14 rounded-lg" />
+        </Link>
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <h2 className="text-h3">{movie.title}</h2>
+            <h2 className="text-h3">
+              <Link to={moviePath(movie)}>{movie.title}</Link>
+            </h2>
             <AgeBadge rating={movie.ageRating} />
           </div>
           <p className="text-body-m text-secondary">{movie.runtimeMinutes} min</p>
