@@ -55,10 +55,28 @@ export function useStoredHold(sessionId: number) {
   })
 }
 
+/**
+ * If the modal closes while the request is out, nobody is left to pay for the seats: the hold is
+ * released as soon as it arrives instead of blocking them until it lapses.
+ */
 export function useHoldSeats(sessionId: number) {
+  const queryClient = useQueryClient()
+  const abandoned = useRef(false)
+  useEffect(() => {
+    abandoned.current = false
+    return () => {
+      abandoned.current = true
+    }
+  }, [])
+
   return useMutation({
     mutationFn: (seats: SeatChoice[]) => holdSeats(sessionId, seats),
-    onSuccess: (hold) => holdStorage.set(sessionId, hold.holdId),
+    onSuccess: (hold) => {
+      if (!abandoned.current) return holdStorage.set(sessionId, hold.holdId)
+      void releaseHold(hold.holdId)
+        .catch(() => {})
+        .finally(() => queryClient.invalidateQueries({ queryKey: bookingKeys.seats(sessionId) }))
+    },
   })
 }
 
