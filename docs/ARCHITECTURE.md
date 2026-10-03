@@ -122,6 +122,11 @@ Flow:
   "Couldn't load your account" + Retry on error; `RequireAuth` shows a spinner or an `ErrorState`.
 - On boot, if a token exists, `GET /me` restores the user; a 401 there drops the token and the user
   continues as a guest. A network/server failure is the `error` status — the token is kept.
+- **A response only acts on the session that sent it.** `trackSession()` (`store.ts`) is called before a
+  request and returns a check that is false once anyone has signed in or out. The `/me` 401 only drops
+  the token while that check holds, and a profile save only writes `['me']` while it holds (otherwise
+  the current user is refetched). Cancelling a query discards its result, but not the side effects of
+  its code, so those need this check.
 - Login and registration store the token, reset the session cache (below) with the returned user and
   close the modal.
 - **Waiting for a login** is a promise: `requestLogin()` opens the modal (unless one is already open) and
@@ -310,7 +315,8 @@ modal; dismissing it removes the parameter.
   the section name.
 - **Hold:** Next posts `POST /sessions/{id}/holds` (holding again replaces the previous hold). The
   hold id is kept in `sessionStorage`, so a refresh resumes checkout through `GET /holds/{id}`
-  (`useStoredHold`; an expired or unknown hold is forgotten). The timer counts down from the
+  (`useStoredHold`; an expired or unknown hold is forgotten, while a hold that could not be fetched
+  is an error with Retry, since it may still be live). The timer counts down from the
   absolute `expiresAt`; it shows whenever a hold is live, including after going back to the map.
 - **409** (hold or order): the lost seats are named in a note, drawn as sold and dropped; the rest
   stay selected; the map refetches.
@@ -320,6 +326,15 @@ modal; dismissing it removes the parameter.
 - **Checkout:** react-hook-form + zod (`schemas.ts`); name, email and mobile are prefilled from the
   profile. Card fields accept spaces, as the API does. 422 field errors land on their inputs. Back
   (or the Seats step pill) keeps the hold; closing the modal releases it (`DELETE /holds/{id}`).
+- **Requests that outlive the modal:** closing while a hold request is out releases that hold when
+  it arrives (`useHoldSeats`, in the hook-level `onSuccess`, which still runs after unmount).
+  Closing while a payment is out does not release the hold, so the two cannot race; the order
+  still completes and appears under My Tickets.
+- **401 during booking:** the session ends and the login modal opens, but `BookingGate` keeps the
+  flow mounted for the last signed-in user, so the replayed hold or order returns to the same flow
+  (checkout or confirmation). Declining the login closes the modal; a different account logging
+  in starts a new flow (`key={user.id}`). The restored hold is read once, because the hold query
+  runs again after the new login.
 - **Confirmation** renders from the `POST /orders` response: reference, film, seats, ticket types,
   total; "View my tickets" and "Close". Paying invalidates sessions, movies and `['me', 'tickets']`.
 
