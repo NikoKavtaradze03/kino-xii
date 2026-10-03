@@ -11,7 +11,7 @@ Designed for desktop at **1920×1080**, following the provided Figma file.
 ## Features
 
 - **Home** — featured films carousel, Now Playing and Coming Soon rows (with Notify Me), and a
-  Recently viewed row for signed-in users.
+  Recently viewed row.
 - **Header search** — typeahead over films and live events with keyboard navigation.
 - **Sessions** — every showtime with filters for venue, date, format, language and time of day,
   sorting and pagination. Filters live in the URL, so a filtered view can be shared or bookmarked.
@@ -88,7 +88,8 @@ authentication and every page in detail.
 ## Notes and decisions
 
 - **Food & drinks (foyer)** from the brief is not built: the API has no endpoints for it.
-- **Recently viewed** has no endpoint, so it is stored in the browser (`localStorage`).
+- **Recently viewed** has no endpoint, so it is stored in the browser (`localStorage`) and shown to
+  guests and signed-in users alike; Figma draws it only on the signed-in home page.
 - **Header search** comes from Figma; it is not in the written brief.
 - **Profile completeness** is shown by the dot on the avatar and the account menu, as in Figma; the
   profile page keeps Figma's layout and adds a card with the age ratings the user can book.
