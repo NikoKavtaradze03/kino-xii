@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import type { FilterOptions } from '@/shared/api/types'
-import { upcomingDates } from '@/shared/lib/dates'
+import { useUpcomingDates } from '@/shared/lib/dates'
 import { fetchSessions, sessionKeys } from './api'
 import {
   availableFormats,
@@ -23,7 +23,7 @@ export function useSessions(filters: SessionFilters) {
 export function useSessionFilters(options: FilterOptions) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const [dates] = useState(() => upcomingDates(new Date()))
+  const dates = useUpcomingDates()
 
   const filters = useMemo(
     () => parseSessionFilters(searchParams, options, dates),

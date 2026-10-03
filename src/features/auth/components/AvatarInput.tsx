@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ChangeEvent } from 'react'
+import { useEffect, useRef, type ChangeEvent } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/Icon'
 
@@ -9,13 +9,18 @@ type AvatarInputProps = {
 }
 
 export function AvatarInput({ value, onChange, error }: AvatarInputProps) {
-  const previewUrl = useMemo(() => (value ? URL.createObjectURL(value) : null), [value])
+  const imageRef = useRef<HTMLImageElement>(null)
+  const showPreview = value !== undefined && !error
 
+  // The object URL is created and revoked by the same effect, so a render that React discards
+  // cannot leave one behind.
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
+    const image = imageRef.current
+    if (!value || !image) return
+    const url = URL.createObjectURL(value)
+    image.src = url
+    return () => URL.revokeObjectURL(url)
+  }, [value, showPreview])
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.files?.[0])
@@ -29,13 +34,12 @@ export function AvatarInput({ value, onChange, error }: AvatarInputProps) {
         <span
           className={cn(
             'flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg',
-            !previewUrl || error
-              ? 'border-[0.5px] border-dashed border-raised bg-tint-white text-disabled'
-              : '',
+            !showPreview &&
+              'border-[0.5px] border-dashed border-raised bg-tint-white text-disabled',
           )}
         >
-          {previewUrl && !error ? (
-            <img src={previewUrl} alt="Avatar preview" className="size-full object-cover" />
+          {showPreview ? (
+            <img ref={imageRef} alt="Avatar preview" className="size-full object-cover" />
           ) : (
             <Icon name="upload" />
           )}

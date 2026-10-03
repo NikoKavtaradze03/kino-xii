@@ -1,5 +1,5 @@
 import { Select } from 'radix-ui'
-import { useId } from 'react'
+import { useId, type ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from './Icon'
 
@@ -16,6 +16,8 @@ type SelectFieldProps = {
   /** Adds an option that clears the field back to ''. */
   emptyLabel?: string
   name?: string
+  disabled?: boolean
+  error?: ReactNode
   className?: string
 }
 
@@ -28,6 +30,8 @@ export function SelectField({
   placeholder,
   emptyLabel,
   name,
+  disabled,
+  error,
   className,
 }: SelectFieldProps) {
   const id = useId()
@@ -40,14 +44,19 @@ export function SelectField({
       <Select.Root
         name={name}
         value={value}
-        onValueChange={(next) => onChange(next === NONE ? '' : next)}
+        disabled={disabled}
+        onValueChange={(next) => {
+          // Radix reports '' by itself when the value's option is not rendered yet (the list is
+          // still loading); a real clear arrives as NONE.
+          if (next !== '') onChange(next === NONE ? '' : next)
+        }}
         onOpenChange={(open) => !open && onBlur?.()}
       >
         <Select.Trigger
           id={id}
           className={cn(
-            'group flex h-10 cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-transparent bg-card px-3.75 text-label-s text-primary transition-colors outline-none',
-            'hover:border-disabled hover:bg-raised focus-visible:border-disabled data-placeholder:text-secondary',
+            'group flex h-10 cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-transparent bg-card px-3.75 text-label-s text-primary transition-colors outline-none disabled:cursor-not-allowed',
+            'focus-visible:border-disabled enabled:hover:border-disabled enabled:hover:bg-raised data-placeholder:text-secondary',
           )}
         >
           <Select.Value placeholder={placeholder} />
@@ -73,6 +82,11 @@ export function SelectField({
           </Select.Content>
         </Select.Portal>
       </Select.Root>
+      {error && (
+        <p role="alert" className="text-label-s text-red">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

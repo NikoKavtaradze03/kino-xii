@@ -8,13 +8,14 @@ import { cn } from '@/shared/lib/cn'
 import { applyServerErrors, useSchemaValid } from '@/shared/lib/forms'
 import { Button } from '@/shared/ui/Button'
 import { FormError } from '@/shared/ui/FormError'
+import { RetryLink } from '@/shared/ui/RetryLink'
 import { SelectField } from '@/shared/ui/SelectField'
 import { TextField } from '@/shared/ui/TextField'
 import { useUpdateProfile } from '../hooks'
 import { profileSchema, profileValues, type ProfileValues } from '../schemas'
 
 export function ProfileForm({ user }: { user: User }) {
-  const { data: options } = useFilterOptions()
+  const { data: options, isError: optionsFailed, isFetching, refetch } = useFilterOptions()
   const updateMutation = useUpdateProfile()
   const {
     register,
@@ -50,6 +51,8 @@ export function ProfileForm({ user }: { user: User }) {
     value: String(venue.id),
     label: venue.name,
   }))
+  let venuePlaceholder = 'Choose a venue'
+  if (!options) venuePlaceholder = optionsFailed ? 'Venues unavailable' : 'Loading venues…'
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-9">
@@ -104,12 +107,23 @@ export function ProfileForm({ user }: { user: User }) {
               <SelectField
                 label="Preferred Venue (Optional)"
                 name={field.name}
-                value={field.value}
+                // Without the list the saved venue has no name to show; the form keeps its id.
+                value={options ? field.value : ''}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 options={venues}
-                placeholder="Choose a venue"
+                placeholder={venuePlaceholder}
                 emptyLabel="No preference"
+                disabled={!options}
+                error={
+                  !options &&
+                  optionsFailed && (
+                    <>
+                      We couldn't load the venues.{' '}
+                      <RetryLink onRetry={() => void refetch()} retrying={isFetching} />
+                    </>
+                  )
+                }
               />
             )}
           />
