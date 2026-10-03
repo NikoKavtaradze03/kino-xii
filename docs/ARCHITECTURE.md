@@ -47,8 +47,10 @@ Folders are created when their first file is written.
 ### Dependency rules
 
 - `shared/` never imports from `features/` or `pages/`.
-- `features/` import from `shared/`, and from another feature only through that feature's public hooks
-  (e.g. booking uses `auth`'s `useRequireAuth`).
+- `features/` import from `shared/`, and from another feature only what that feature offers for reuse:
+  mostly hooks (booking uses `auth`'s `useRequireAuth`), plus a few components and helpers
+  (`catalogue`'s `AgeBadge`, `MovieImage` and `lib`; `auth`'s store, `authKeys` and `UserMenu`).
+  A feature never reaches into another feature's internals to change its state.
 - `pages/` compose features; they hold no data-fetching logic of their own.
 - Imports use the `@/` alias (`@/shared/ui/Button`) instead of deep relative paths.
 
@@ -180,7 +182,7 @@ Four sections, each a component in `features/catalogue/components` that owns its
 (skeleton), error (message + Retry) and empty states; `pages/HomePage` only stacks them.
 
 - **Hero** (`GET /movies/featured`): slides crossfade (300 ms) and the image slowly zooms (to 110 %
-  over 7 s, reset after the fade-out). The red progress bar's CSS animation (`animate-progress`, 6 s)
+  over 12 s, reset after the fade-out). The red progress bar's CSS animation (`animate-progress`, 6 s)
   is the timer: its `animationend` moves to the next film, so pausing the animation (keyboard focus
   inside the hero) pauses the carousel, and with `prefers-reduced-motion` there is no autoplay or zoom. List responses have no `synopsis`, so each featured
   film's `GET /movies/{slug}` is fetched too; the details page later reuses that cache entry.
@@ -220,6 +222,10 @@ serialise functions live in `features/sessions/filters.ts`.
   `/sessions?venue=galleria,batumi&date=2026-11-14&format=max&language=georgian-dub&time=evening&sort=price_asc&page=2`.
   `api.ts` sends it in the API's format (`venues[]=galleria&venues[]=batumi&...`).
 - Defaults (today, the first sort, page 1, no filters) are left out of the URL.
+- "Today" and the 7-day range come from `useUpcomingDates()` (`shared/lib/dates.ts`): the cinema's
+  current date (`cinemaClock`), not the visitor's time zone, and it moves on at midnight in Tbilisi
+  even on a page left open. The movie page uses the same hook; a selected day that drops out of
+  the range falls back to the first available one.
 - Values not in `/filter-options`, and dates outside the next 7 days, are ignored, because the API
   would answer 422; an old or edited link still opens.
 - Every change navigates, so Back restores the previous filters. Filter changes keep the scroll
@@ -349,7 +355,9 @@ composes `features/profile` and `features/tickets`.
   keeps Figma's layout. Beside the form (not in Figma), an "Age ratings you can book" card uses the
   server-computed `age` and the `/filter-options` age ratings: the notice ("You are 14, you cannot
   buy tickets for 16+ or 18+ titles") and the rating badges, the blocked ones faded. Without a date
-  of birth it asks for one.
+  of birth it asks for one. While `/filter-options` is loading the card shows a skeleton and the
+  venue select is disabled ("Loading venues…"); if it failed, both say so with a "Try again" link
+  (`RetryLink`). The rest of the form stays usable, and the saved venue id is kept.
 - **Form:** react-hook-form + zod (`profile/schemas.ts`) with the brief's exact messages, checked in
   the brief's order (mobile: required → digits only → starts with 5 → 9 digits). Email is shown
   disabled. Date of birth is a native date input (the whole field opens the picker); the preferred
