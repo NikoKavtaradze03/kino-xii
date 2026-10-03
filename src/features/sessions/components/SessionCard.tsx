@@ -1,4 +1,5 @@
 import type { Session } from '@/shared/api/types'
+import { hasSessionStarted, useCinemaNow } from '@/shared/lib/cinemaClock'
 import { cn } from '@/shared/lib/cn'
 import { Icon } from '@/shared/ui/Icon'
 
@@ -11,10 +12,13 @@ type SessionCardProps = {
 }
 
 export function SessionCard({ session, onSelect }: SessionCardProps) {
+  const started = hasSessionStarted(session, useCinemaNow())
+  const closed = started ? 'Started' : session.isSoldOut ? 'Sold out' : null
+
   return (
     <button
       type="button"
-      disabled={session.isSoldOut}
+      disabled={closed !== null}
       onClick={() => onSelect(session)}
       className="flex w-63 shrink-0 cursor-pointer flex-col gap-3 rounded-2xl bg-card p-3.75 text-left disabled:cursor-not-allowed disabled:opacity-40"
     >
@@ -34,8 +38,8 @@ export function SessionCard({ session, onSelect }: SessionCardProps) {
         </span>
 
         <span className="flex shrink-0 flex-col items-end gap-2.5">
-          {session.isSoldOut ? (
-            <span className="flex h-3.25 items-center text-body-s text-secondary">Sold out</span>
+          {closed ? (
+            <span className="flex h-3.25 items-center text-body-s text-secondary">{closed}</span>
           ) : (
             <span
               className={cn(

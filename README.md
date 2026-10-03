@@ -92,8 +92,10 @@ authentication and every page in detail.
 - **Header search** comes from Figma; it is not in the written brief.
 - **Profile completeness** is shown by the dot on the avatar and the account menu, as in Figma; the
   profile page keeps Figma's layout and adds a card with the age ratings the user can book.
-- **Session times** come from the API as the cinema's local time, so the refund cutoff is built
-  from the session's date and time rather than its UTC timestamp.
+- **Session times** come from the API as the cinema's local time labelled as UTC. Refund cutoffs are
+  therefore built from the session's date and time, and a session counts as started by the clock in
+  Tbilisi: started sessions are shown disabled, although the API itself would still accept a
+  booking for another four hours. The brief only asks for sold-out sessions to be disabled.
 - **Cases not covered by Figma:** many specific situations have no design (empty and error states,
   the refund confirmation, disabled and sold-out sessions, the age-ratings card, some validation
   feedback). Independent decisions, trade-offs and some deviations from Figma were therefore

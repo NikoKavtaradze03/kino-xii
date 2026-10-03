@@ -233,7 +233,11 @@ serialise functions live in `features/sessions/filters.ts`.
 - The date pills keep Figma's 37px width, so the row scrolls like the Home rows; the selected day is
   scrolled into view.
 - Each film's sessions are one row, clipped at the list edge as in Figma; extra sessions scroll sideways.
-- Sold-out sessions stay visible but disabled ("Sold out", 40 % opacity); 5 or fewer seats left are red.
+- Sold-out and already started sessions stay visible but disabled ("Sold out" / "Started", 40 % opacity);
+  5 or fewer seats left are red. "Started" is decided on the cinema's clock (`shared/lib/cinemaClock.ts`):
+  the session's `date` + `time` against the current time in Asia/Tbilisi, re-checked every minute by one
+  shared timer. The API's `startsAt` labels that same wall clock as UTC, so the server's own check
+  only rejects a booking four hours late. The movie page's tiles and the booking modal use the same rule.
 - Choosing a session asks a guest to log in first, then opens the booking modal through `?booking=<id>`.
 
 ## Movie details page
@@ -289,7 +293,9 @@ modal; dismissing it removes the parameter.
   selected seats with their ticket types, the live `hold`, the `order`, seat codes `lost` to other
   users and the current `notice`. Request progress comes from the mutations; a ref also blocks a
   second Next or Pay in the same tick, before `isPending` has re-rendered.
-- **Access:** Next is disabled, with a note, when the profile is incomplete (link to the profile) or
+- **Access:** Next is disabled, with a note, when the session has already started (a direct link, or
+  the modal left open past the start; a hold made earlier can still be paid), when the profile is
+  incomplete (link to the profile) or
   the user is younger than the film's rating.
 - **Seat map** comes entirely from `GET /sessions/{id}/seats`: one block per section with its
   heading ("Stalls · Rows A-E"), row labels from the data, a spacer after `aisleAfter` seats and an
