@@ -2,7 +2,6 @@ import type { Session } from '@/shared/api/types'
 import { hasSessionStarted, useCinemaNow } from '@/shared/lib/cinemaClock'
 import { formatPrice } from '@/shared/lib/format'
 import { Icon } from '@/shared/ui/Icon'
-import { languageCode } from '../lib'
 
 type SessionTicketProps = {
   session: Session
@@ -12,8 +11,8 @@ type SessionTicketProps = {
 
 /**
  * Figma's ticket-shaped session tile (207×81); it sits on a `card`-coloured hall card. Figma puts the
- * language beside the format badge, which only fits a 3-letter code, so it sits under the seat count
- * instead and every tile keeps Figma's size.
+ * language code beside the format badge, where a PANORAMA badge does not fit, so it sits under the
+ * seat count instead and every tile keeps Figma's size.
  */
 export function SessionTicket({ session, disabled, onSelect }: SessionTicketProps) {
   const started = hasSessionStarted(session, useCinemaNow())
@@ -49,7 +48,7 @@ export function SessionTicket({ session, disabled, onSelect }: SessionTicketProp
           </span>
         )}
         <span className="text-body-s whitespace-nowrap text-secondary">
-          {languageCode(session.language)}
+          {session.language.code}
         </span>
       </span>
     </button>

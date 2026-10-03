@@ -20,6 +20,8 @@ export type Language = {
   id: number
   slug: string
   name: string
+  /** Three letters for tight spaces, e.g. "GEO". */
+  code: string
 }
 
 export type Genre = {

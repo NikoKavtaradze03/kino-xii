@@ -258,8 +258,9 @@ synopsis, badges), the sessions section on the left and a Details panel on the r
   "N sessions over the next seven days" is exact and switching days is instant. Days without
   sessions are not requested.
 - The API groups sessions by venue; the page also groups each venue's sessions by hall, as in Figma.
-  Session tiles are ticket-shaped (notches and a dashed perforation) and show a short language code
-  (`languageCode` in `catalogue/lib.ts`), because Figma has room for "ENG" only.
+  Session tiles are ticket-shaped (notches and a dashed perforation) and show the API's three-letter
+  `language.code` ("ENG") under the seat count. Figma has it beside the format badge, where a
+  PANORAMA badge does not fit, so this keeps every tile at Figma's 207×81.
 - **Age gate:** a signed-in user younger than `ageRating.minAge` sees "This film is rated 16+. You
   cannot buy tickets for it with this account." above the venues, and every tile is disabled. Guests
   can still choose a session; the booking flow checks their age after they log in.
