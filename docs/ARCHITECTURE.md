@@ -188,8 +188,9 @@ Four sections, each a component in `features/catalogue/components` that owns its
   film's `GET /movies/{slug}` is fetched too; the details page later reuses that cache entry.
 - **Recently viewed**: no endpoint, so `recentlyViewed.ts` keeps up to 10 films in `localStorage`
   (newest first, no duplicates) and exposes them through `useSyncExternalStore`. The movie details page
-  adds to it. As in Figma, the section is shown only to signed-in users, and hidden while the list is
-  empty.
+  adds to it. The section is shown to guests and signed-in users alike (Figma draws it only on the
+  signed-in home page; the reviewers asked for both) and hidden while the list is empty. The list
+  belongs to the browser, not the account, so it stays the same across login and logout.
 - **Now playing** (`GET /movies/now-playing?limit=10`): cards widen on hover or focus as in the
   Figma prototype: the poster is cropped to the wider box and the synopsis (fetched at that moment)
   fades in at its final position; text sizes and the price row never move. "See all" goes to the
