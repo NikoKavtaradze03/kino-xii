@@ -38,7 +38,7 @@ export function MovieSection({
         {/* Vertical padding keeps hover shadows from being clipped by the scroll container; the
             negative margin cancels it. The scrollbar is hidden, as in Figma (rows still scroll with
             a trackpad, Shift + wheel, or keyboard focus). */}
-        <div className={cn('-my-6 flex [scrollbar-width:none] overflow-x-auto py-6', rowClassName)}>
+        <div className={cn('-my-6 flex scrollbar-none overflow-x-auto py-6', rowClassName)}>
           {children}
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 w-45 bg-linear-to-l from-page" />

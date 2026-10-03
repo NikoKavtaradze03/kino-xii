@@ -11,7 +11,7 @@ export function MovieBanner({ movie }: { movie: MovieDetail }) {
           does not fade out at the edges. */}
       <MovieImage
         src={movie.backdropUrl}
-        className="absolute top-[-5.15vw] -left-2.5 aspect-[1728/1063] w-[calc(100%+20px)] blur-xs"
+        className="absolute top-[-5.15vw] -left-2.5 aspect-1728/1063 w-[calc(100%+20px)] blur-xs"
       />
       <div className="absolute inset-0 bg-page/20" />
 

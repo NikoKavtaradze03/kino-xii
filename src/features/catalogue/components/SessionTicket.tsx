@@ -33,7 +33,7 @@ export function SessionTicket({ session, disabled, onSelect }: SessionTicketProp
         {/* The notches are circles in the hall card's colour; the perforation is a 3/4 dashed line. */}
         <span className="absolute -top-1.75 -left-1.75 size-3.5 rounded-full bg-card" />
         <span className="absolute -bottom-1.75 -left-1.75 size-3.5 rounded-full bg-card" />
-        <span className="absolute top-2.75 -left-[0.75px] h-14.75 w-[1.5px] bg-[repeating-linear-gradient(to_bottom,var(--color-primary)_0_3px,transparent_3px_7px)]" />
+        <span className="absolute top-2.75 left-[-0.75px] h-14.75 w-[1.5px] bg-[repeating-linear-gradient(to_bottom,var(--color-primary)_0_3px,transparent_3px_7px)]" />
 
         <span className="text-h3 text-red">{formatPrice(session.price)}</span>
         {session.isSoldOut ? (
