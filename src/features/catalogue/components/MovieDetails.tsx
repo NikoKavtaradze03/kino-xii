@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { isApiError } from '@/shared/api/errors'
-import { upcomingDates } from '@/shared/lib/dates'
+import { useUpcomingDates } from '@/shared/lib/dates'
 import { ButtonLink } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { ErrorState } from '@/shared/ui/ErrorState'
@@ -13,7 +13,7 @@ import { MovieShowtimes } from './MovieShowtimes'
 
 export function MovieDetails({ slug }: { slug: string }) {
   const { data: movie, error, refetch, isRefetching } = useMovie(slug)
-  const [dates] = useState(() => upcomingDates(new Date()))
+  const dates = useUpcomingDates()
 
   useEffect(() => {
     if (movie) addRecentlyViewed(movie)

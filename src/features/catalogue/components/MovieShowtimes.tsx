@@ -62,9 +62,12 @@ function VenueShowtimes({
 }
 
 export function MovieShowtimes({ movie, dates }: MovieShowtimesProps) {
-  const [selected, setSelected] = useState(
-    () => dates.find((date) => movie.availableDates.includes(date)) ?? dates[0],
-  )
+  const [picked, setPicked] = useState<string>()
+  // Until a day is picked, and again once the picked day has dropped out of the range at midnight.
+  const selected =
+    picked && dates.includes(picked)
+      ? picked
+      : (dates.find((date) => movie.availableDates.includes(date)) ?? dates[0])
   const days = useMovieSessions(movie, dates)
   const day = days[dates.indexOf(selected)]
   const { user } = useCurrentUser()
@@ -97,7 +100,7 @@ export function MovieShowtimes({ movie, dates }: MovieShowtimesProps) {
           dates={dates}
           selected={selected}
           availableDates={movie.availableDates}
-          onSelect={setSelected}
+          onSelect={setPicked}
         />
       </div>
 
