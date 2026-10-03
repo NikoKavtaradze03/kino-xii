@@ -1,14 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Order } from '@/shared/api/types'
+import { hasSessionStarted, useCinemaNow } from '@/shared/lib/cinemaClock'
 import { fetchTickets, refundOrder, ticketKeys } from './api'
 
+/**
+ * The server's `isUpcoming` runs on a clock that is four hours late (see `cinemaClock`), so an order
+ * also moves to Past once its session has started on the cinema's clock.
+ */
 export function useMyTickets() {
+  const now = useCinemaNow()
+  const isUpcoming = (order: Order) => order.isUpcoming && !hasSessionStarted(order.session, now)
   return useQuery({
     queryKey: ticketKeys.all,
     queryFn: fetchTickets,
     select: (orders) => ({
-      upcoming: orders.filter((order) => order.isUpcoming),
-      past: orders.filter((order) => !order.isUpcoming),
+      upcoming: orders.filter(isUpcoming),
+      past: orders.filter((order) => !isUpcoming(order)),
     }),
   })
 }

@@ -359,14 +359,19 @@ composes `features/profile` and `features/tickets`.
   not parse multipart bodies on a real PUT (a plain POST returns 405, so this reaches the PUT
   route). The response is written into `['me']`, so the navbar dot and the booking checks update,
   and the form resets to it. 422 field errors land on their inputs.
-- **My Tickets:** one `GET /tickets` (`['me', 'tickets']`) split by the server's `isUpcoming`;
+- **My Tickets:** one `GET /tickets` (`['me', 'tickets']`), split in `useMyTickets`: Upcoming is the
+  server's `isUpcoming` and not yet started on the cinema's clock, so a ticket moves to Past when its
+  session starts (the server's flag is four hours late);
   counts on the Upcoming / Past switch and the upcoming count on the My Tickets tab. Each card is
   built from the order alone (poster, title, rating, runtime, date, venue + hall, format + language,
   seat chips, reference, total). Loading = two card skeletons; each list has empty and error states.
-- **Refund** is enabled only by `isRefundable`; the note under the button says until when, or why
-  not ("Refunds close 2 hours before the session", "Refunded on 28 Sep", "This session has ended").
-  Past cards keep Figma's faded, disabled button. Refunding asks for confirmation in a modal; a 422
-  message shows inside it; a ref blocks a second click. The returned order replaces the cached one,
+- **Refund** is enabled when the API says `isRefundable` and the cutoff (2 hours before the session's
+  `date` + `time`) has not passed on the cinema's clock (`useCinemaNow`): the API's own check runs four
+  hours late, like its "session has started" rule. The note under the button says until when, or why
+  not ("Refunds close 2 hours before the session", "Refunded on 28 Sep", "This session has started",
+  "This session has ended").
+  Every disabled Refund uses the faded look of Figma's past card (20 % opacity). Refunding asks for
+  confirmation in a modal; a 422 message shows inside it; a ref blocks a second click. The returned order replaces the cached one,
   then tickets, sessions and movies are refetched (the seats are on sale again).
 
 ## Styling

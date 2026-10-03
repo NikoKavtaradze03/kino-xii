@@ -1,7 +1,7 @@
 import { format, parseISO, subHours } from 'date-fns'
 import { useState, type ReactNode } from 'react'
 import type { Order } from '@/shared/api/types'
-import { cn } from '@/shared/lib/cn'
+import { hasSessionStarted, useCinemaNow } from '@/shared/lib/cinemaClock'
 import { formatDate } from '@/shared/lib/format'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
@@ -9,16 +9,26 @@ import { RefundDialog } from './RefundDialog'
 
 const REFUND_CUTOFF_HOURS = 2
 
-function refundNote(order: Order) {
+// `startsAt` carries the cinema's wall-clock time with a +00:00 offset, so parsing it would shift
+// it by the browser's time zone; the date and time fields are the local time as shown.
+function refundCutoff({ date, time }: Order['session']) {
+  return subHours(parseISO(`${date}T${time}`), REFUND_CUTOFF_HOURS)
+}
+
+/**
+ * The server's `isRefundable` runs on the same four-hours-late clock as its "session has started"
+ * check (see `cinemaClock`), so the cutoff is checked on the cinema's clock as well.
+ */
+const canRefund = (order: Order, now: string) =>
+  order.isRefundable && now < format(refundCutoff(order.session), 'yyyy-MM-dd HH:mm')
+
+function refundNote(order: Order, refundable: boolean, started: boolean) {
   if (order.status === 'refunded' && order.refundedAt)
     return `Refunded on ${format(parseISO(order.refundedAt), 'd MMM')}`
   if (!order.isUpcoming) return 'This session has ended'
-  if (!order.isRefundable) return `Refunds close ${REFUND_CUTOFF_HOURS} hours before the session`
-  // `startsAt` carries the cinema's wall-clock time with a +00:00 offset, so parsing it would shift
-  // it by the browser's time zone; the date and time fields are the local time as shown.
-  const { date, time } = order.session
-  const cutoff = subHours(parseISO(`${date}T${time}`), REFUND_CUTOFF_HOURS)
-  return `Refundable until ${format(cutoff, 'HH:mm, EEE d MMM')}`
+  if (started) return 'This session has started'
+  if (!refundable) return `Refunds close ${REFUND_CUTOFF_HOURS} hours before the session`
+  return `Refundable until ${format(refundCutoff(order.session), 'HH:mm, EEE d MMM')}`
 }
 
 function Overline({ children }: { children: ReactNode }) {
@@ -36,6 +46,8 @@ function Meta({ label, value }: { label: string; value: string }) {
 
 export function TicketCard({ order }: { order: Order }) {
   const [refunding, setRefunding] = useState(false)
+  const now = useCinemaNow()
+  const refundable = canRefund(order, now)
   const { session } = order
   const { movie } = session
 
@@ -104,13 +116,15 @@ export function TicketCard({ order }: { order: Order }) {
           <Button
             variant="transparent"
             size="compact"
-            disabled={!order.isRefundable}
+            disabled={!refundable}
             onClick={() => setRefunding(true)}
-            className={cn('w-full', !order.isUpcoming && 'opacity-20')}
+            className="w-full disabled:opacity-20"
           >
             Refund
           </Button>
-          <p className="text-center text-body-s text-secondary">{refundNote(order)}</p>
+          <p className="text-center text-body-s text-secondary">
+            {refundNote(order, refundable, hasSessionStarted(order.session, now))}
+          </p>
         </div>
       </div>
 
